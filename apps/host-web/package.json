@@ -1,0 +1,30 @@
+{
+  "name": "@gamedemo/host-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@gamedemo/engine-content": "workspace:*",
+    "@gamedemo/engine-core": "workspace:*",
+    "@gamedemo/engine-phaser": "workspace:*",
+    "@gamedemo/engine-runtime": "workspace:*",
+    "@gamedemo/mod-api": "workspace:*",
+    "@gamedemo/mod-loader": "workspace:*",
+    "@gamedemo/mod-core-base": "workspace:*",
+    "@gamedemo/mod-core-building": "workspace:*",
+    "@gamedemo/mod-core-crafting": "workspace:*",
+    "@gamedemo/mod-core-gathering": "workspace:*",
+    "@gamedemo/mod-core-inventory": "workspace:*",
+    "@gamedemo/mod-core-player": "workspace:*",
+    "@gamedemo/mod-core-survival": "workspace:*",
+    "@gamedemo/mod-core-ui-hud": "workspace:*",
+    "@gamedemo/mod-core-worldgen": "workspace:*",
+    "@gamedemo/mod-vanilla-bundle": "workspace:*",
+    "@gamedemo/save-schema": "workspace:*"
+  }
+}

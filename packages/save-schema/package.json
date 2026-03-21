@@ -1,0 +1,12 @@
+{
+  "name": "@gamedemo/save-schema",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@gamedemo/engine-core": "workspace:*"
+  }
+}

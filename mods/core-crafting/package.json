@@ -1,0 +1,16 @@
+{
+  "name": "@gamedemo/mod-core-crafting",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@gamedemo/engine-core": "workspace:*",
+    "@gamedemo/mod-api": "workspace:*",
+    "@gamedemo/mod-core-base": "workspace:*",
+    "@gamedemo/mod-core-building": "workspace:*",
+    "@gamedemo/mod-core-survival": "workspace:*"
+  }
+}

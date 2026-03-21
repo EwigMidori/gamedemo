@@ -1,0 +1,14 @@
+{
+  "name": "@gamedemo/engine-phaser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@gamedemo/engine-core": "workspace:*",
+    "@gamedemo/engine-runtime": "workspace:*",
+    "phaser": "^3.90.0"
+  }
+}
