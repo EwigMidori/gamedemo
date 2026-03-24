@@ -3,8 +3,11 @@ import {
 } from "@gamedemo/engine-core";
 import type { GameModModule } from "@gamedemo/mod-api";
 import { PlayerActions } from "./actions";
+import { PlayerDomain } from "./playerDomain";
 import { PlayerResolvers } from "./resolver";
 import { PlayerSystems } from "./system";
+
+export { PlayerDomain } from "./playerDomain";
 
 export const corePlayerMod: GameModModule = {
   manifest: {
@@ -20,6 +23,7 @@ export const corePlayerMod: GameModModule = {
     context.actions.register(PlayerActions.moveRight);
     context.actions.register(PlayerActions.setMoveTarget);
     context.actions.register(PlayerActions.clearMoveTarget);
+    context.actions.register(PlayerActions.updateMovementInput);
     context.systems.register(PlayerSystems.movementFollowTarget);
     context.commandResolvers.register(PlayerResolvers.movement);
     context.ui.register({

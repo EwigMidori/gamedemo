@@ -1,41 +1,41 @@
 import type { RuntimeWorldObjectInteractionProvider } from "@gamedemo/engine-core";
 import { CraftingDomain } from "./craftingDomain";
 
-const campfireRecipes: RuntimeWorldObjectInteractionProvider = {
-  id: "crafting:campfire-recipes",
-  collect({ object, session }) {
-    if (object.kind !== "structure" || object.typeId !== "core:campfire") {
+const stationRecipes: RuntimeWorldObjectInteractionProvider = {
+  id: "crafting:station-recipes",
+  collect(context) {
+    if (context.object.kind !== "structure") {
       return [];
     }
-
-    const station = CraftingDomain.getStructureById(session, object.id);
-    if (!station) return [];
-
-    const craftingCheck = CraftingDomain.canCraftRationAtCampfire(session, station.id);
-    const recipe = CraftingDomain.describeRationRecipe(session);
-    return [{
-      id: "crafting:craft-ration",
-      label: `Craft ration at campfire ${station.x},${station.y}`,
-      enabled: craftingCheck.ok,
-      reasonDisabled: craftingCheck.reason,
-      binding: "KeyC",
-      actionId: "crafting:craft-ration",
-      sourceModId: "core:crafting",
-      priority: 95,
-      payload: { structureId: station.id },
-      affordance: "context",
-      targetObjectId: object.id,
-      targetObjectKind: object.kind,
-      targetObjectTypeId: object.typeId,
-      targetObjectLabel: object.label,
-      presentation: {
-        ...recipe,
-        detail: `${recipe.detail} Station: ${station.x},${station.y}.`
-      }
-    }];
+    const structure = context.content.structures.find((entry) => entry.id === context.object.typeId) ?? null;
+    const stationId = structure?.craftStationId ?? structure?.utilityStationId ?? null;
+    if (!stationId) {
+      return [];
+    }
+    const model = CraftingDomain.createModel();
+    return model.stationRecipes(context.content, stationId).map((recipe, index) => {
+      const check = model.canCraft(context.content, context.session, recipe, context.object.id);
+      return {
+        id: `crafting:station:${context.object.id}:${recipe.id}`,
+        label: `Craft ${recipe.label}`,
+        enabled: check.ok,
+        reasonDisabled: check.reason,
+        binding: "KeyC",
+        actionId: "crafting:craft-recipe",
+        sourceModId: "core:crafting",
+        priority: 95 - index,
+        payload: { structureId: context.object.id, recipeId: recipe.id },
+        affordance: "context",
+        targetObjectId: context.object.id,
+        targetObjectKind: context.object.kind,
+        targetObjectTypeId: context.object.typeId,
+        targetObjectLabel: context.object.label,
+        presentation: model.describe(context.content, context.session, recipe)
+      };
+    });
   }
 };
 
 export const CraftingInteractions = {
-  campfireRecipes
+  stationRecipes
 };

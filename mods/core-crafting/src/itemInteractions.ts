@@ -1,33 +1,33 @@
 import type { RuntimeInventoryInteractionProvider } from "@gamedemo/engine-core";
 import { CraftingDomain } from "./craftingDomain";
 
-const selectedWoodRecipes: RuntimeInventoryInteractionProvider = {
-  id: "crafting:selected-wood-recipes",
+const selectedItemRecipes: RuntimeInventoryInteractionProvider = {
+  id: "crafting:selected-item-recipes",
   collect(context) {
-    if (context.entry.itemId !== "core:wood") {
-      return [];
-    }
-
-    return [{
-      id: "crafting:craft-ration-from-selected-wood",
-      label: "Prepare selected wood",
-      enabled: false,
-      reasonDisabled: "Focus a campfire to craft from the selected wood stack.",
-      binding: "KeyC",
-      actionId: "crafting:craft-ration",
-      sourceModId: "core:crafting",
-      priority: 20,
-      slotIndex: context.slotIndex,
-      itemId: context.entry.itemId,
-      itemLabel: context.descriptor.label,
-      presentation: {
-        ...CraftingDomain.describeSelectedWoodRecipe(context.session, context.slotIndex),
-        detail: "Move next to a campfire and focus it to use the selected wood stack."
-      }
-    }];
+    const model = CraftingDomain.createModel();
+    return model.handRecipes(context.content)
+      .filter((recipe) => recipe.cost[context.entry.itemId] !== undefined)
+      .map((recipe) => {
+        const check = model.canCraft(context.content, context.session, recipe);
+        return {
+          id: `crafting:item:${recipe.id}:${context.slotIndex}`,
+          label: `Craft ${recipe.label}`,
+          enabled: check.ok,
+          reasonDisabled: check.reason,
+          binding: "KeyC",
+          actionId: "crafting:craft-recipe",
+          sourceModId: "core:crafting",
+          priority: 20,
+          slotIndex: context.slotIndex,
+          itemId: context.entry.itemId,
+          itemLabel: context.descriptor.label,
+          payload: { recipeId: recipe.id },
+          presentation: model.describe(context.content, context.session, recipe)
+        };
+      });
   }
 };
 
 export const CraftingItemInteractions = {
-  selectedWoodRecipes
+  selectedItemRecipes
 };

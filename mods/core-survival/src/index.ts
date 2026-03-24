@@ -17,25 +17,20 @@ export const coreSurvivalMod: GameModModule = {
     dependsOn: [{ id: "core:base" }, { id: "core:inventory" }]
   },
   install(context) {
-    context.content.registerItem({
-      id: "survival:ration",
-      label: "Ration",
-      stackSize: 20,
-      tags: ["food", "healing"]
-    });
-
     context.session.registerBootstrap((state) => {
       state.timeSeconds = 8;
       state.day = 1;
-      state.needs.hunger = 92;
-      state.needs.health = 86;
+      state.needs.hunger = 99.4;
+      state.needs.health = 100;
       state.logs.push("Survival session bootstrapped.");
     });
 
+    context.actions.register(SurvivalActions.eatFood);
     context.actions.register(SurvivalActions.eatRation);
     context.actions.register(SurvivalActions.restAtCampfire);
     context.commandResolvers.register(SurvivalResolvers.interactions);
     context.inventorySelections.register(SurvivalInventoryProviders.rationDetails);
+    context.inventoryInteractions.register(SurvivalItemInteractions.foodUse);
     context.inventoryInteractions.register(SurvivalItemInteractions.rationUse);
     context.worldObjectInteractions.register(SurvivalInteractions.campfireActions);
     context.systems.register(SurvivalSystems.needsDecay);

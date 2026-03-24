@@ -7,17 +7,19 @@ import type { AssembledRuntime } from "./runtimeTypes";
 function createEmpty(
   width: number,
   height: number,
-  fallbackTerrainId: string
+  fallbackTerrainId: string,
+  originX = -Math.floor(width * 0.5),
+  originY = -Math.floor(height * 0.5)
 ): WorldBlueprint {
   const tiles: WorldTile[] = [];
 
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      tiles.push({ x, y, terrainId: fallbackTerrainId });
+  for (let localY = 0; localY < height; localY += 1) {
+    for (let localX = 0; localX < width; localX += 1) {
+      tiles.push({ x: originX + localX, y: originY + localY, terrainId: fallbackTerrainId });
     }
   }
 
-  return { width, height, tiles };
+  return { originX, originY, width, height, tiles };
 }
 
 function build(

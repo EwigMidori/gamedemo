@@ -1,6 +1,9 @@
 import { MOD_API_VERSION } from "@gamedemo/engine-core";
 import type { GameModModule } from "@gamedemo/mod-api";
+import { InventoryActions } from "./actions";
+import { InventoryInteractions } from "./interactions";
 import { InventoryProviders } from "./provider";
+import { InventoryResolvers } from "./resolver";
 
 export const coreInventoryMod: GameModModule = {
   manifest: {
@@ -10,7 +13,10 @@ export const coreInventoryMod: GameModModule = {
     dependsOn: [{ id: "core:base" }]
   },
   install(context) {
+    context.actions.register(InventoryActions.dropSelectedItem);
+    context.commandResolvers.register(InventoryResolvers.selectedSlotActions);
     context.inventorySelections.register(InventoryProviders.selectedSlotDetails);
+    context.inventoryInteractions.register(InventoryInteractions.selectedSlotDrop);
     context.ui.register({
       id: "inventory:selection",
       title: "Inventory",

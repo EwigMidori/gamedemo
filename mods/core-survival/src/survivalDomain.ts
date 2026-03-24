@@ -2,6 +2,7 @@ import type {
   PlacedStructure,
   RuntimeSessionState
 } from "@gamedemo/engine-core";
+import { PlayerDomain } from "@gamedemo/mod-core-player";
 
 const DAY_LENGTH_SECONDS = 180;
 
@@ -56,7 +57,8 @@ function isAdjacentToPlayer(
   x: number,
   y: number
 ): boolean {
-  return Math.abs(state.player.x - x) + Math.abs(state.player.y - y) <= 1;
+  const playerTile = PlayerDomain.currentTile(state.player);
+  return PlayerDomain.isAdjacentTile(playerTile.x, playerTile.y, x, y);
 }
 
 function findNearestAdjacentCampfire(state: RuntimeSessionState): PlacedStructure | null {

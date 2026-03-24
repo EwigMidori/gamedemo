@@ -35,8 +35,10 @@ interface RuntimeSessionFactoryInput {
   profile: RuntimeProfile;
   manifests: GameModManifest[];
   content: {
-    items: unknown[];
-    structures: unknown[];
+    items: Array<{ id: string }>;
+    recipes: Array<{ id: string }>;
+    resources: Array<{ id: string }>;
+    structures: Array<{ id: string }>;
     terrains: Array<{ id: string }>;
   };
   systems: RuntimeSystem[];
@@ -54,11 +56,32 @@ interface RuntimeSessionFactoryInput {
   initialState?: RuntimeSessionState;
 }
 
+const worldTileSnapshotKey = Symbol("worldTileSnapshot");
+const worldTileCloneCountKey = Symbol("worldTileCloneCount");
+
+type WorldWithSnapshotCache = WorldBlueprint & {
+  [worldTileSnapshotKey]?: WorldTile[];
+  [worldTileCloneCountKey]?: number;
+};
+
 function cloneWorldBlueprint(world: WorldBlueprint): WorldBlueprint {
+  const cachedWorld = world as WorldWithSnapshotCache;
+  const cachedTiles = cachedWorld[worldTileSnapshotKey] ?? [];
+  const cachedCount = cachedWorld[worldTileCloneCountKey] ?? 0;
+  if (cachedCount < world.tiles.length) {
+    const nextTiles = cachedTiles.slice();
+    for (let index = cachedCount; index < world.tiles.length; index += 1) {
+      nextTiles.push({ ...world.tiles[index] });
+    }
+    cachedWorld[worldTileSnapshotKey] = nextTiles;
+    cachedWorld[worldTileCloneCountKey] = world.tiles.length;
+  }
   return {
+    originX: world.originX,
+    originY: world.originY,
     width: world.width,
     height: world.height,
-    tiles: world.tiles.map((tile) => ({ ...tile }))
+    tiles: (cachedWorld[worldTileSnapshotKey] ?? []).slice()
   };
 }
 
@@ -68,13 +91,25 @@ function cloneSessionState(state: RuntimeSessionState): RuntimeSessionState {
     world: cloneWorldBlueprint(state.world),
     player: {
       ...state.player,
+      movementInput: state.player.movementInput
+        ? {
+            ...state.player.movementInput,
+            lastTapAt: { ...state.player.movementInput.lastTapAt }
+          }
+        : undefined,
+      motion: state.player.motion ? { ...state.player.motion } : null,
       moveTarget: state.player.moveTarget ? { ...state.player.moveTarget } : null,
       movePath: (state.player.movePath ?? []).map((step) => ({ ...step }))
     },
     needs: { ...state.needs },
     inventory: state.inventory.map((entry) => ({ ...entry })),
     resources: state.resources.map((entry) => ({ ...entry })),
-    placedStructures: state.placedStructures.map((entry) => ({ ...entry })),
+    placedStructures: state.placedStructures.map((entry) => ({
+      ...entry,
+      inventory: entry.inventory?.map((inventoryEntry) => ({ ...inventoryEntry })) ?? null
+    })),
+    plantedResources: state.plantedResources?.map((entry) => ({ ...entry })) ?? [],
+    droppedItems: state.droppedItems?.map((entry) => ({ ...entry })) ?? [],
     logs: [...state.logs]
   };
 }
@@ -137,7 +172,7 @@ function sortAndDeduplicateCommands<T extends ResolvedCommand>(commands: T[]): T
 }
 
 function create(input: RuntimeSessionFactoryInput): RuntimeSession {
-  const generatedWorld = RuntimeWorldBlueprints.build(createRuntimeStub(input), 40, 28);
+  const generatedWorld = RuntimeWorldBlueprints.build(createRuntimeStub(input), 96, 96);
   const state = input.initialState
     ? cloneSessionState({ ...input.initialState, world: input.initialState.world ?? generatedWorld })
     : input.sessionRegistry.createInitialState();
@@ -147,8 +182,8 @@ function create(input: RuntimeSessionFactoryInput): RuntimeSession {
   }
 
   if (!input.initialState && state.player.x === 3 && state.player.y === 3) {
-    state.player.x = Math.floor(state.world.width * 0.5);
-    state.player.y = Math.floor(state.world.height * 0.45);
+    state.player.x = state.world.originX + Math.floor(state.world.width * 0.5);
+    state.player.y = state.world.originY + Math.floor(state.world.height * 0.5);
   }
 
   const createCommandContext = (

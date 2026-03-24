@@ -1,10 +1,11 @@
 import type { RuntimeAction } from "@gamedemo/engine-core";
+import { VanillaInventory } from "@gamedemo/vanilla-domain";
 import { SurvivalDomain } from "./survivalDomain";
 
 const eatRation: RuntimeAction = {
   id: "survival:eat-ration",
   label: "Eat ration",
-  execute({ state, command }) {
+  execute({ state, content, command }) {
     const slotIndex = typeof command?.payload?.slotIndex === "number"
       ? Math.floor(command.payload.slotIndex)
       : undefined;
@@ -23,12 +24,49 @@ const eatRation: RuntimeAction = {
       };
     }
 
-    state.inventory = state.inventory.filter((entry) => entry.quantity > 0);
+    const inventory = new VanillaInventory(
+      state.inventory,
+      new Map(content.items.map((entry) => [entry.id, entry]))
+    );
+    inventory.normalizeSize(12);
     state.needs.hunger = Math.min(100, state.needs.hunger + 28);
     state.needs.health = Math.min(100, state.needs.health + 6);
     return {
       ok: true,
       message: "A ration restores hunger and steadies your health."
+    };
+  }
+};
+
+const eatFood: RuntimeAction = {
+  id: "survival:eat-food",
+  label: "Eat food",
+  execute({ state, content, command }) {
+    const slotIndex = typeof command?.payload?.slotIndex === "number"
+      ? Math.floor(command.payload.slotIndex)
+      : undefined;
+    const selectedEntry = SurvivalDomain.getInventoryEntryAtSlot(state.inventory, slotIndex);
+    const consumed = selectedEntry
+      ? selectedEntry.itemId === "core:food" &&
+        SurvivalDomain.consumeInventorySlot(state.inventory, slotIndex, 1)
+      : SurvivalDomain.consumeItem(state.inventory, "core:food", 1);
+    if (!consumed) {
+      return {
+        ok: false,
+        message: selectedEntry && selectedEntry.itemId !== "core:food"
+          ? "Selected slot does not contain food."
+          : "No food available."
+        };
+    }
+    const inventory = new VanillaInventory(
+      state.inventory,
+      new Map(content.items.map((entry) => [entry.id, entry]))
+    );
+    inventory.normalizeSize(12);
+    state.needs.hunger = Math.min(100, state.needs.hunger + 12);
+    return {
+      ok: true,
+      message: "Ate raw food (+hunger)."
     };
   }
 };
@@ -82,6 +120,7 @@ const restAtCampfire: RuntimeAction = {
 };
 
 export const SurvivalActions = {
+  eatFood,
   eatRation,
   restAtCampfire
 };

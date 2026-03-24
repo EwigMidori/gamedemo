@@ -1,18 +1,23 @@
-import { MOD_API_VERSION, type WorldBlueprint } from "@gamedemo/engine-core";
+import { MOD_API_VERSION } from "@gamedemo/engine-core";
 import type { GameModModule } from "@gamedemo/mod-api";
+import { VanillaWorldSeed } from "@gamedemo/vanilla-domain";
+import { ExpandingWorldSystem } from "./expandingWorldSystem";
 
-function withTerrain(
-  blueprint: WorldBlueprint,
-  matcher: (x: number, y: number) => boolean,
-  terrainId: string
-): WorldBlueprint {
-  return {
-    ...blueprint,
-    tiles: blueprint.tiles.map((tile) =>
-      matcher(tile.x, tile.y) ? { ...tile, terrainId } : tile
-    )
-  };
+class CoreWorldgenInstaller {
+  private readonly seed = new VanillaWorldSeed();
+
+  install(context: Parameters<GameModModule["install"]>[0]): void {
+    context.systems.register(ExpandingWorldSystem.create());
+    context.worldgen.register({
+      id: "core:prototype-noise-world",
+      order: 10,
+      description: "Fills the world using deterministic terrain noise shaped after the original prototype.",
+      generate: (blueprint) => this.seed.fillTerrain(blueprint)
+    });
+  }
 }
+
+const installer = new CoreWorldgenInstaller();
 
 export const coreWorldgenMod: GameModModule = {
   manifest: {
@@ -22,40 +27,6 @@ export const coreWorldgenMod: GameModModule = {
     dependsOn: [{ id: "core:base" }]
   },
   install(context) {
-    context.content.registerTerrain({
-      id: "core:sand",
-      label: "Sand",
-      walkable: true,
-      tags: ["ground", "shore"]
-    });
-
-    context.worldgen.register({
-      id: "core:shoreline-layout",
-      order: 10,
-      description: "Creates the first deterministic shoreline preview layout.",
-      generate(blueprint) {
-        let next = withTerrain(
-          blueprint,
-          (_x, y) => y > Math.floor(blueprint.height * 0.7),
-          "core:water"
-        );
-
-        next = withTerrain(
-          next,
-          (_x, y) => y === Math.floor(blueprint.height * 0.7),
-          "core:sand"
-        );
-
-        next = withTerrain(
-          next,
-          (x, y) =>
-            y < Math.floor(blueprint.height * 0.7) &&
-            (x + y) % 7 === 0,
-          "core:sand"
-        );
-
-        return next;
-      }
-    });
+    installer.install(context);
   }
 };

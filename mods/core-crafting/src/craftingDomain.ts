@@ -1,156 +1,134 @@
 import type {
-  PlacedStructure,
+  ContentSnapshot,
+  RecipeDef,
   RuntimeSessionState
 } from "@gamedemo/engine-core";
+import { PlayerDomain } from "@gamedemo/mod-core-player";
+import { CraftingRecipeBook } from "./recipeBook";
 
-function getItemCount(state: RuntimeSessionState, itemId: string): number {
-  return state.inventory.find((entry) => entry.itemId === itemId)?.quantity ?? 0;
-}
+class CraftingDomainModel {
+  private readonly recipes = new CraftingRecipeBook();
 
-function addItem(state: RuntimeSessionState, itemId: string, quantity: number): void {
-  const existing = state.inventory.find((entry) => entry.itemId === itemId);
-  if (existing) {
-    existing.quantity += quantity;
-    return;
+  handRecipes(content: ContentSnapshot): RecipeDef[] {
+    return this.recipes.listHandRecipes(content);
   }
 
-  state.inventory.push({ itemId, quantity });
-}
-
-function consumeItem(
-  state: RuntimeSessionState,
-  itemId: string,
-  quantity: number
-): boolean {
-  const entry = state.inventory.find((candidate) => candidate.itemId === itemId);
-  if (!entry || entry.quantity < quantity) return false;
-  entry.quantity -= quantity;
-  if (entry.quantity <= 0) {
-    state.inventory = state.inventory.filter((candidate) => candidate.itemId !== itemId);
-  }
-  return true;
-}
-
-function getInventoryEntryAtSlot(
-  state: RuntimeSessionState,
-  slotIndex: number | null | undefined
-) {
-  if (slotIndex === null || slotIndex === undefined) {
-    return null;
-  }
-  return state.inventory[slotIndex] ?? null;
-}
-
-function consumeInventorySlot(
-  state: RuntimeSessionState,
-  slotIndex: number | null | undefined,
-  quantity: number
-): boolean {
-  const entry = getInventoryEntryAtSlot(state, slotIndex);
-  if (!entry || entry.quantity < quantity) return false;
-  entry.quantity -= quantity;
-  if (entry.quantity <= 0) {
-    state.inventory = state.inventory.filter((_, index) => index !== slotIndex);
-  }
-  return true;
-}
-
-function getStructureById(
-  state: RuntimeSessionState,
-  structureId: string
-): PlacedStructure | null {
-  return state.placedStructures.find((entry) => entry.id === structureId) ?? null;
-}
-
-function isAdjacentToPlayer(
-  state: RuntimeSessionState,
-  x: number,
-  y: number
-): boolean {
-  return Math.abs(state.player.x - x) + Math.abs(state.player.y - y) <= 1;
-}
-
-function findNearestAdjacentCampfire(state: RuntimeSessionState): PlacedStructure | null {
-  return (
-    state.placedStructures.find(
-      (structure) =>
-        structure.structureId === "core:campfire" &&
-        isAdjacentToPlayer(state, structure.x, structure.y)
-    ) ?? null
-  );
-}
-
-function canCraftRationAtCampfire(
-  state: RuntimeSessionState,
-  structureId?: string
-): { ok: boolean; reason?: string; station: PlacedStructure | null } {
-  const station = structureId
-    ? getStructureById(state, structureId)
-    : findNearestAdjacentCampfire(state);
-
-  if (!station || station.structureId !== "core:campfire") {
-    return { ok: false, reason: "Move next to a campfire first.", station: null };
+  stationRecipes(content: ContentSnapshot, stationId: string): RecipeDef[] {
+    return this.recipes.listStationRecipes(content, stationId);
   }
 
-  if (!isAdjacentToPlayer(state, station.x, station.y)) {
-    return { ok: false, reason: "Move next to the campfire first.", station };
+  findRecipe(content: ContentSnapshot, recipeId: string): RecipeDef | null {
+    return this.recipes.findRecipe(content, recipeId);
   }
 
-  if (getItemCount(state, "core:wood") < 1) {
-    return { ok: false, reason: "Need 1 wood.", station };
+  canCraft(
+    content: ContentSnapshot,
+    state: RuntimeSessionState,
+    recipe: RecipeDef,
+    structureId?: string
+  ) {
+    return this.recipes.canCraft(content, state, recipe, structureId);
   }
 
-  return { ok: true, station };
+  craft(
+    content: ContentSnapshot,
+    state: RuntimeSessionState,
+    recipe: RecipeDef
+  ) {
+    return this.recipes.craft(content, state, recipe);
+  }
+
+  describe(
+    content: ContentSnapshot,
+    state: RuntimeSessionState,
+    recipe: RecipeDef
+  ) {
+    return this.recipes.describe(content, state, recipe);
+  }
+
+  bestAvailableRecipe(
+    content: ContentSnapshot,
+    state: RuntimeSessionState,
+    selectedSlot: number | null | undefined,
+    focusedStructureId?: string | null
+  ): { recipe: RecipeDef; structureId?: string } | null {
+    const selectedItemId = selectedSlot !== null && selectedSlot !== undefined
+      ? state.inventory[selectedSlot]?.itemId || null
+      : null;
+    const candidates = this.collectCandidateRecipes(
+      content,
+      state,
+      selectedItemId,
+      focusedStructureId ?? null
+    );
+    return candidates[0] ?? null;
+  }
+
+  private collectCandidateRecipes(
+    content: ContentSnapshot,
+    state: RuntimeSessionState,
+    selectedItemId: string | null,
+    focusedStructureId: string | null
+  ): Array<{ recipe: RecipeDef; structureId?: string }> {
+    const playerTile = PlayerDomain.currentTile(state.player);
+    const focusedStation = focusedStructureId
+      ? state.placedStructures.find((entry) => entry.id === focusedStructureId) ?? null
+      : null;
+    const nearbyStations = state.placedStructures.filter((entry) => {
+      const stationId = this.stationIdFor(content, entry.structureId);
+      return !!stationId && PlayerDomain.isAdjacentTile(playerTile.x, playerTile.y, entry.x, entry.y);
+    });
+    const stationCandidates = nearbyStations.flatMap((entry) => {
+      const stationId = this.stationIdFor(content, entry.structureId);
+      if (!stationId) {
+        return [];
+      }
+      return this.stationRecipes(content, stationId).map((recipe) => ({
+        recipe,
+        structureId: entry.id
+      }));
+    });
+    const handCandidates = this.handRecipes(content).map((recipe) => ({ recipe }));
+    return [...stationCandidates, ...handCandidates]
+      .sort((left, right) => this.candidateScore(content, state, left, selectedItemId, focusedStation)
+        - this.candidateScore(content, state, right, selectedItemId, focusedStation));
+  }
+
+  private candidateScore(
+    content: ContentSnapshot,
+    state: RuntimeSessionState,
+    candidate: { recipe: RecipeDef; structureId?: string },
+    selectedItemId: string | null,
+    focusedStation: RuntimeSessionState["placedStructures"][number] | null
+  ): number {
+    let score = 1000;
+    const craftable = this.canCraft(content, state, candidate.recipe, candidate.structureId).ok;
+    if (craftable) {
+      score -= 500;
+    }
+    if (selectedItemId && candidate.recipe.cost[selectedItemId] !== undefined) {
+      score -= 250;
+    }
+    if (focusedStation && candidate.structureId === focusedStation.id) {
+      score -= 180;
+    }
+    if (candidate.recipe.stationId) {
+      score -= 50;
+    }
+    score += Object.keys(candidate.recipe.cost).length * 5;
+    return score;
+  }
+
+  private stationIdFor(content: ContentSnapshot, structureId: string): string | null {
+    const structure = content.structures.find((entry) => entry.id === structureId) ?? null;
+    return structure?.craftStationId ?? structure?.utilityStationId ?? null;
+  }
 }
 
-function describeRationRecipe(state: RuntimeSessionState) {
-  return {
-    summary: "Cook a simple ration from gathered wood.",
-    detail: "Campfire crafting converts 1 wood into 1 survival ration.",
-    costs: [{
-      itemId: "core:wood",
-      quantity: 1,
-      available: getItemCount(state, "core:wood")
-    }],
-    rewards: [{
-      itemId: "survival:ration",
-      quantity: 1
-    }]
-  };
-}
-
-function describeSelectedWoodRecipe(
-  state: RuntimeSessionState,
-  slotIndex: number
-) {
-  const entry = getInventoryEntryAtSlot(state, slotIndex);
-  return {
-    summary: "Use the selected wood stack as input for a campfire ration recipe.",
-    detail: entry
-      ? `Selected slot ${slotIndex + 1} contains ${entry.quantity} wood.`
-      : "Selected wood stack is unavailable.",
-    costs: [{
-      itemId: "core:wood",
-      quantity: 1,
-      available: entry?.itemId === "core:wood" ? entry.quantity : 0
-    }],
-    rewards: [{
-      itemId: "survival:ration",
-      quantity: 1
-    }]
-  };
-}
+const model = new CraftingDomainModel();
 
 export const CraftingDomain = {
-  getItemCount,
-  addItem,
-  consumeItem,
-  getInventoryEntryAtSlot,
-  consumeInventorySlot,
-  getStructureById,
-  isAdjacentToPlayer,
-  findNearestAdjacentCampfire,
-  canCraftRationAtCampfire,
-  describeRationRecipe,
-  describeSelectedWoodRecipe
+  createModel(): CraftingDomainModel {
+    return model;
+  }
 };

@@ -9,6 +9,8 @@
   "dependencies": {
     "@gamedemo/engine-core": "workspace:*",
     "@gamedemo/mod-api": "workspace:*",
-    "@gamedemo/mod-core-base": "workspace:*"
+    "@gamedemo/mod-core-base": "workspace:*",
+    "@gamedemo/mod-core-player": "workspace:*",
+    "@gamedemo/vanilla-domain": "workspace:*"
   }
 }

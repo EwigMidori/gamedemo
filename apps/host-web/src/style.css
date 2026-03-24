@@ -64,6 +64,8 @@ a {
   place-items: center;
   overflow: hidden;
   background: #171411;
+  margin: 0;
+  border: 0;
 }
 
 .eyebrow {

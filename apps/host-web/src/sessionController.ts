@@ -7,6 +7,7 @@ import {
   type AssembledRuntime,
   type RuntimeSession
 } from "@gamedemo/engine-runtime";
+import { VanillaBreakRules } from "@gamedemo/vanilla-domain";
 import type { HostShellRefs } from "./hostShell";
 import { SessionCommandCatalog } from "./sessionCommandCatalog";
 import { SessionViewRenderer } from "./sessionViewRenderer";
@@ -15,10 +16,16 @@ interface StorageKeys {
   saveKey: string;
 }
 
+interface PendingHoldAction {
+  tile: RuntimePointerTile;
+}
+
 class SessionController {
   private activeSession: RuntimeSession;
   private commandCatalog: ReturnType<typeof SessionCommandCatalog.create>;
   private viewRenderer: ReturnType<typeof SessionViewRenderer.create>;
+  private handcraftOpen = false;
+  private pendingHoldAction: PendingHoldAction | null = null;
   private commandInput: RuntimeCommandInput = {
     trigger: "ui",
     pointerTile: null,
@@ -34,6 +41,7 @@ class SessionController {
   ) {
     this.activeSession = runtime.createSession();
     this.commandCatalog = SessionCommandCatalog.create(this.activeSession);
+    this.setSelectedSlot(0);
     this.viewRenderer = SessionViewRenderer.create(
       refs,
       (commandId) => this.executeUiCommand(commandId),
@@ -46,6 +54,14 @@ class SessionController {
       return null;
     }
     return Number.parseInt(code.slice("Digit".length), 10) - 1;
+  }
+
+  private movementDirectionForCode(code: string): "up" | "left" | "down" | "right" | null {
+    if (code === "KeyW" || code === "ArrowUp") return "up";
+    if (code === "KeyA" || code === "ArrowLeft") return "left";
+    if (code === "KeyS" || code === "ArrowDown") return "down";
+    if (code === "KeyD" || code === "ArrowRight") return "right";
+    return null;
   }
 
   private buildCommandInput(
@@ -117,7 +133,40 @@ class SessionController {
     this.render();
   }
 
+  runPointerHoldAction(tile: RuntimePointerTile): void {
+    const pointerInput = this.buildCommandInput("pointer", tile);
+    this.setPointerTile(tile);
+    const holdCommand = this.commandCatalog.findPointerHoldCommand(pointerInput);
+    if (holdCommand) {
+      this.activeSession.executeCommand(holdCommand.id, pointerInput);
+      this.pendingHoldAction = null;
+      this.render();
+      return;
+    }
+    const blockedHold = this.commandCatalog.findPointerBlockedHoldCommand(pointerInput);
+    if (!blockedHold) {
+      return;
+    }
+    const moveCommand = this.commandCatalog.collectCommands(pointerInput)
+      .find((command) => command.actionId === "player:set-move-target" && command.enabled);
+    if (!moveCommand) {
+      this.viewRenderer.setLogMessage(blockedHold.reasonDisabled ?? "Move closer first.");
+      this.render();
+      return;
+    }
+    this.activeSession.executeCommand(moveCommand.id, pointerInput);
+    this.pendingHoldAction = { tile };
+    this.render();
+  }
+
+  cancelPointerHoldAction(): void {
+    this.pendingHoldAction = null;
+  }
+
   runKeyboardInput(code: string): void {
+    if (this.movementDirectionForCode(code)) {
+      return;
+    }
     const inventorySlot = this.parseInventorySelectionCode(code);
     if (inventorySlot !== null) {
       this.setSelectedSlot(inventorySlot);
@@ -134,6 +183,18 @@ class SessionController {
     if (!matched || !matched.enabled) return;
     this.activeSession.executeCommand(matched.id, keyboardInput);
     this.render();
+  }
+
+  setMovementKey(code: string, isDown: boolean): void {
+    const direction = this.movementDirectionForCode(code);
+    if (!direction) {
+      return;
+    }
+    this.activeSession.dispatchAction("player:update-movement-input", {
+      id: `player:movement:${direction}:${isDown ? "down" : "up"}`,
+      trigger: "system",
+      payload: { direction, isDown }
+    });
   }
 
   save(): void {
@@ -158,6 +219,33 @@ class SessionController {
 
   tick(deltaSeconds: number): void {
     this.activeSession.tick(deltaSeconds);
+    this.resolvePendingHoldAction();
+    this.render();
+  }
+
+  toggleHandcraftPanel(): void {
+    this.handcraftOpen = !this.handcraftOpen;
+    this.pendingHoldAction = null;
+    this.render();
+  }
+
+  closeHandcraftPanel(): void {
+    this.handcraftOpen = false;
+    this.pendingHoldAction = null;
+    this.render();
+  }
+
+  isHandcraftOpen(): boolean {
+    return this.handcraftOpen;
+  }
+
+  craftHandRecipe(recipeId: string): void {
+    const result = this.activeSession.dispatchAction("crafting:craft-recipe", {
+      id: `handcraft:${recipeId}`,
+      trigger: "ui",
+      payload: { recipeId }
+    });
+    this.viewRenderer.setLogMessage(result.message);
     this.render();
   }
 
@@ -216,6 +304,72 @@ class SessionController {
     fillAlpha: number;
   } | null {
     return this.commandCatalog.getSelectedTileMarker(this.commandInput);
+  }
+
+  getPointerHoldSpec(tile: RuntimePointerTile): {
+    durationSeconds: number;
+    label: string;
+    requiresApproach?: boolean;
+  } | null {
+    const input = this.buildCommandInput("pointer", tile);
+    const command = this.commandCatalog.findPointerHoldCommand(input)
+      ?? this.commandCatalog.findPointerBlockedHoldCommand(input);
+    if (!command) {
+      return null;
+    }
+    const snapshot = this.activeSession.snapshot();
+    if (typeof command.payload?.resourceNodeId === "string") {
+      const target = snapshot.resources.find((entry) => entry.id === command.payload?.resourceNodeId) ?? null;
+      if (!target) {
+        return null;
+      }
+      return {
+        durationSeconds: VanillaBreakRules.forResource(
+          this.runtime.content,
+          snapshot,
+          target,
+          input.selectedSlot
+        ).durationSeconds,
+        label: command.label,
+        requiresApproach: !command.enabled
+      };
+    }
+    if (typeof command.payload?.structureId === "string") {
+      const target = snapshot.placedStructures.find((entry) => entry.id === command.payload?.structureId) ?? null;
+      if (!target) {
+        return null;
+      }
+      return {
+        durationSeconds: VanillaBreakRules.forStructure(
+          this.runtime.content,
+          snapshot,
+          target,
+          input.selectedSlot
+        ).durationSeconds,
+        label: command.label,
+        requiresApproach: !command.enabled
+      };
+    }
+    return null;
+  }
+
+  private resolvePendingHoldAction(): void {
+    if (!this.pendingHoldAction) {
+      return;
+    }
+    const pointerInput = this.buildCommandInput("pointer", this.pendingHoldAction.tile);
+    const holdCommand = this.commandCatalog.findPointerHoldCommand(pointerInput);
+    if (holdCommand) {
+      this.activeSession.executeCommand(holdCommand.id, pointerInput);
+      this.pendingHoldAction = null;
+      return;
+    }
+    const snapshot = this.activeSession.snapshot();
+    const targetStillExists = Boolean(pointerInput.focusedResourceId || pointerInput.focusedStructureId);
+    const playerMoving = Boolean(snapshot.player.motion || snapshot.player.moveTarget);
+    if (!targetStillExists || !playerMoving) {
+      this.pendingHoldAction = null;
+    }
   }
 }
 

@@ -82,6 +82,24 @@ class SessionCommandCatalogModel {
     ][0] ?? null;
   }
 
+  findPointerHoldCommand(input: RuntimeCommandInput): ResolvedCommand | null {
+    const combinedCommands = this.session.resolveCombinedInteractions(input);
+    const objectCommands = this.session.resolveWorldObjectInteractions(input);
+    return [
+      ...objectCommands.filter((command) => command.binding === "HoldLMB"),
+      ...combinedCommands.filter((command) => command.binding === "HoldLMB")
+    ].find((command) => command.enabled) ?? null;
+  }
+
+  findPointerBlockedHoldCommand(input: RuntimeCommandInput): ResolvedCommand | null {
+    const combinedCommands = this.session.resolveCombinedInteractions(input);
+    const objectCommands = this.session.resolveWorldObjectInteractions(input);
+    return [
+      ...objectCommands.filter((command) => command.binding === "HoldLMB"),
+      ...combinedCommands.filter((command) => command.binding === "HoldLMB")
+    ][0] ?? null;
+  }
+
   getSelectedTileMarker(input: RuntimeCommandInput): {
     strokeColor: number;
     fillColor: number;
@@ -91,15 +109,19 @@ class SessionCommandCatalogModel {
     if (!focusedObject) {
       return null;
     }
+    const objectCommands = this.session.resolveWorldObjectInteractions(input);
 
     if (focusedObject.kind === "tile") {
-      const buildCommand = this.session
-        .resolveWorldObjectInteractions(input)
-        .find((command) => command.id === "building:place-campfire");
-      if (buildCommand?.enabled) {
+      const buildCommand = objectCommands.find(
+        (command) => command.actionId === "building:place-selected-structure"
+      );
+      const plantCommand = objectCommands.find(
+        (command) => command.actionId === "gathering:plant-selected-item"
+      );
+      if (buildCommand?.enabled || plantCommand?.enabled) {
         return {
-          strokeColor: 0x85d36b,
-          fillColor: 0x85d36b,
+          strokeColor: buildCommand?.enabled ? 0x85d36b : 0xf3c96b,
+          fillColor: buildCommand?.enabled ? 0x85d36b : 0xf3c96b,
           fillAlpha: 0.16
         };
       }
@@ -108,6 +130,35 @@ class SessionCommandCatalogModel {
         fillColor: 0xe18942,
         fillAlpha: 0.12
       };
+    }
+
+    if (focusedObject.kind === "resource") {
+      return {
+        strokeColor: 0xe39b63,
+        fillColor: 0x2d1a12,
+        fillAlpha: 0.12
+      };
+    }
+
+    if (focusedObject.kind === "structure") {
+      const hasStore = objectCommands.some((command) => command.actionId === "building:store-selected-item");
+      const hasTake = objectCommands.some((command) => command.actionId === "building:take-from-storage");
+      const hasCraft = objectCommands.some((command) => command.actionId === "crafting:craft-recipe");
+      const hasRest = objectCommands.some((command) => command.actionId === "survival:rest-at-campfire");
+      if (hasStore || hasTake) {
+        return {
+          strokeColor: 0x7cc9d8,
+          fillColor: 0x14222a,
+          fillAlpha: 0.1
+        };
+      }
+      if (hasCraft || hasRest) {
+        return {
+          strokeColor: 0xf3c96b,
+          fillColor: 0x2a2315,
+          fillAlpha: 0.09
+        };
+      }
     }
 
     return {

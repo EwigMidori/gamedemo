@@ -16,7 +16,7 @@ const interaction: RuntimeCommandResolver = {
         label: "Gather",
         enabled: false,
         reasonDisabled: "Move next to a resource node.",
-        binding: "KeyE",
+        binding: "KeyG",
         actionId: "gathering:gather-nearest",
         sourceModId: "core:gathering",
         priority: 30
@@ -28,7 +28,7 @@ const interaction: RuntimeCommandResolver = {
       label: `Gather ${target.resourceId}`,
       enabled,
       reasonDisabled: enabled ? undefined : "Move next to a resource node.",
-      binding: "KeyE",
+      binding: "KeyG",
       actionId: "gathering:gather-nearest",
       sourceModId: "core:gathering",
       priority: 30,

@@ -16,6 +16,42 @@ export interface ItemDef {
   label: string;
   stackSize: number;
   tags: string[];
+  iconFrame?: number;
+  category?: string;
+  uiGroup?: string;
+  uiPriority?: number;
+  consumable?: {
+    hunger?: number;
+    health?: number;
+    consumeMessage: string;
+    emptyMessage: string;
+    blockedMessage: string;
+  };
+  plantable?: {
+    validTerrainIds: string[];
+    growSeconds: number;
+    growsIntoResourceId: string;
+    needMessage: string;
+    invalidTerrainMessage: string;
+    occupiedMessage: string;
+    successMessage: string;
+  };
+  processable?: {
+    stationId: string;
+    cost: Record<string, number>;
+    output: {
+      itemId: string;
+      quantity: number;
+    };
+    successMessage: string;
+    missingMessage: string;
+    noSpaceMessage: string;
+  };
+  tool?: {
+    tags: string[];
+    power?: number;
+    speed?: number;
+  };
 }
 
 export interface StructureDef {
@@ -23,6 +59,73 @@ export interface StructureDef {
   label: string;
   blocksMovement: boolean;
   tags: string[];
+  frame?: number;
+  placeableItemId?: string;
+  pickupItemId?: string;
+  storageSlots?: number;
+  craftStationId?: string;
+  utilityStationId?: string;
+  autotileGroup?: string;
+  autotileFrameBase?: number;
+  growableStages?: Array<{
+    minProgress: number;
+    frame: number;
+    tint?: number;
+  }>;
+  growSeconds?: number;
+  lightTexture?: string;
+  breakable?: {
+    preferredToolTags?: string[];
+    hardness?: number;
+    effectivePower?: number;
+    ineffectivePower?: number;
+    effectiveDropMultiplier?: number;
+    ineffectiveDropMultiplier?: number;
+    drops?: Array<{
+      itemId: string;
+      min: number;
+      max: number;
+    }>;
+  };
+}
+
+export interface RecipeDef {
+  id: string;
+  label: string;
+  output: {
+    itemId: string;
+    quantity: number;
+  };
+  cost: Record<string, number>;
+  stationId?: string | null;
+}
+
+export interface ResourceDef {
+  id: string;
+  label: string;
+  frame: number;
+  blocksMovement: boolean;
+  drops: Array<{
+    itemId: string;
+    min: number;
+    max: number;
+  }>;
+  respawnSeconds?: number;
+  maxHits?: number;
+  grantsHunger?: number;
+  bonusDrop?: {
+    itemId: string;
+    chance: number;
+    quantity: number;
+  };
+  breakable?: {
+    preferredToolTags?: string[];
+    hardness?: number;
+    effectivePower?: number;
+    ineffectivePower?: number;
+    effectiveDropMultiplier?: number;
+    ineffectiveDropMultiplier?: number;
+  };
 }
 
 export interface TerrainDef {
@@ -30,10 +133,14 @@ export interface TerrainDef {
   label: string;
   walkable: boolean;
   tags: string[];
+  frame?: number;
+  tint?: number;
 }
 
 export interface ContentSnapshot {
   items: ItemDef[];
+  recipes: RecipeDef[];
+  resources: ResourceDef[];
   structures: StructureDef[];
   terrains: TerrainDef[];
 }
@@ -57,6 +164,29 @@ export interface InventoryEntry {
 export interface PlayerState {
   x: number;
   y: number;
+  movementInput?: {
+    up: boolean;
+    left: boolean;
+    down: boolean;
+    right: boolean;
+    facing: "up" | "left" | "down" | "right";
+    sprintFacing: "up" | "left" | "down" | "right" | null;
+    sprintUntil: number;
+    lastTapAt: {
+      up: number;
+      left: number;
+      down: number;
+      right: number;
+    };
+  };
+  motion?: {
+    fromX: number;
+    fromY: number;
+    toX: number;
+    toY: number;
+    progressSeconds: number;
+    durationSeconds: number;
+  } | null;
   moveTarget?: {
     x: number;
     y: number;
@@ -73,6 +203,8 @@ export interface ResourceNode {
   x: number;
   y: number;
   depleted: boolean;
+  respawnAt?: number | null;
+  hitsLeft?: number | null;
 }
 
 export interface PlacedStructure {
@@ -80,6 +212,30 @@ export interface PlacedStructure {
   structureId: string;
   x: number;
   y: number;
+  growth?: number | null;
+  inventory?: InventoryEntry[] | null;
+}
+
+export interface DroppedItemState {
+  id: string;
+  itemId: string;
+  quantity: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  spawnedAt: number;
+  pickupDelay: number;
+  manualDrop?: boolean;
+  pickupArmed?: boolean;
+}
+
+export interface PlantedResourceState {
+  id: string;
+  resourceId: string;
+  x: number;
+  y: number;
+  growAt: number;
 }
 
 export interface RuntimeSessionState {
@@ -91,6 +247,8 @@ export interface RuntimeSessionState {
   inventory: InventoryEntry[];
   resources: ResourceNode[];
   placedStructures: PlacedStructure[];
+  plantedResources?: PlantedResourceState[];
+  droppedItems?: DroppedItemState[];
   logs: string[];
 }
 
@@ -299,6 +457,8 @@ export interface WorldTile {
 }
 
 export interface WorldBlueprint {
+  originX: number;
+  originY: number;
   width: number;
   height: number;
   tiles: WorldTile[];

@@ -16,15 +16,15 @@ export const coreCraftingMod: GameModModule = {
     dependsOn: [{ id: "core:base" }, { id: "core:survival" }, { id: "core:building" }]
   },
   install(context) {
-    context.actions.register(CraftingActions.craftRation);
+    context.actions.register(CraftingActions.craftRecipe);
     context.commandResolvers.register(CraftingResolvers.interaction);
-    context.inventoryInteractions.register(CraftingItemInteractions.selectedWoodRecipes);
-    context.combinedInteractions.register(CraftingCombinedInteractions.selectedWoodAtCampfire);
-    context.worldObjectInteractions.register(CraftingInteractions.campfireRecipes);
+    context.inventoryInteractions.register(CraftingItemInteractions.selectedItemRecipes);
+    context.combinedInteractions.register(CraftingCombinedInteractions.selectedItemAtStation);
+    context.worldObjectInteractions.register(CraftingInteractions.stationRecipes);
     context.ui.register({
       id: "crafting:bench",
       title: "Crafting",
-      body: "Campfires expose starter crafting recipes such as ration cooking."
+      body: "Recipes now come from the shared content registry instead of hardcoded single actions."
     });
   }
 };

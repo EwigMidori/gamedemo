@@ -1,0 +1,13 @@
+{
+  "name": "@gamedemo/vanilla-domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@gamedemo/engine-content": "workspace:*",
+    "@gamedemo/engine-core": "workspace:*"
+  }
+}

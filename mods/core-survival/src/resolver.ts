@@ -4,6 +4,7 @@ import { SurvivalDomain } from "./survivalDomain";
 const interactions: RuntimeCommandResolver = {
   id: "survival:resolver",
   resolve({ session, trigger, selectedSlot }) {
+    const foodCount = SurvivalDomain.getItemCount(session.inventory, "core:food");
     const rationCount = SurvivalDomain.getItemCount(session.inventory, "survival:ration");
     const selectedEntry = SurvivalDomain.getInventoryEntryAtSlot(session.inventory, selectedSlot);
     const useful = session.needs.hunger < 100 || session.needs.health < 100;
@@ -22,6 +23,19 @@ const interactions: RuntimeCommandResolver = {
       ...(selectedEntry
         ? []
         : [{
+            id: "survival:eat-food",
+            label: "Eat food",
+            enabled: foodCount > 0 && session.needs.hunger < 100,
+            reasonDisabled:
+              foodCount <= 0
+                ? "Gather food first."
+                : "You are not hungry.",
+            binding: "KeyR",
+            actionId: "survival:eat-food",
+            sourceModId: "core:survival",
+            priority: 16
+          },
+          {
             id: "survival:eat-ration",
             label: "Eat ration",
             enabled: rationCount > 0 && useful,

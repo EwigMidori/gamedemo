@@ -6,6 +6,7 @@ import { BuildingActions } from "./actions";
 import { BuildingInteractions } from "./interactions";
 import { BuildingProviders } from "./provider";
 import { BuildingResolvers } from "./resolver";
+import { BuildingSystems } from "./system";
 import { BuildingTileProviders } from "./tileProvider";
 
 export const coreBuildingMod: GameModModule = {
@@ -16,8 +17,13 @@ export const coreBuildingMod: GameModModule = {
     dependsOn: [{ id: "core:base" }]
   },
   install(context) {
-    context.actions.register(BuildingActions.placeCampfire);
-    context.actions.register(BuildingActions.dismantleCampfire);
+    context.systems.register(BuildingSystems.growthSimulation);
+    context.actions.register(BuildingActions.placeSelectedStructure);
+    context.actions.register(BuildingActions.dismantleStructure);
+    context.actions.register(BuildingActions.harvestStructure);
+    context.actions.register(BuildingActions.storeSelectedItem);
+    context.actions.register(BuildingActions.takeFromStorage);
+    context.actions.register(BuildingActions.breakStructure);
     context.commandResolvers.register(BuildingResolvers.interaction);
     context.worldObjects.register(BuildingProviders.structureObjects);
     context.worldObjects.register(BuildingTileProviders.buildSiteObjects);
@@ -26,7 +32,7 @@ export const coreBuildingMod: GameModModule = {
     context.ui.register({
       id: "building:build-mode",
       title: "Building",
-      body: "Campfires can be placed from the starter inventory."
+      body: "Selected placeable items now determine which structure is built."
     });
   }
 };

@@ -16,6 +16,9 @@ export default defineConfig({
       "@gamedemo/engine-runtime": fileURLToPath(
         new URL("../../packages/engine-runtime/src/index.ts", import.meta.url)
       ),
+      "@gamedemo/vanilla-domain": fileURLToPath(
+        new URL("../../packages/vanilla-domain/src/index.ts", import.meta.url)
+      ),
       "@gamedemo/save-schema": fileURLToPath(
         new URL("../../packages/save-schema/src/index.ts", import.meta.url)
       ),
@@ -36,6 +39,9 @@ export default defineConfig({
       ),
       "@gamedemo/mod-core-gathering": fileURLToPath(
         new URL("../../mods/core-gathering/src/index.ts", import.meta.url)
+      ),
+      "@gamedemo/mod-core-inventory": fileURLToPath(
+        new URL("../../mods/core-inventory/src/index.ts", import.meta.url)
       ),
       "@gamedemo/mod-core-player": fileURLToPath(
         new URL("../../mods/core-player/src/index.ts", import.meta.url)

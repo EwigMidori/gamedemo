@@ -1,0 +1,21 @@
+{
+  "name": "gamedemo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @gamedemo/host-web dev",
+    "build": "pnpm --filter @gamedemo/host-web build",
+    "preview": "pnpm --filter @gamedemo/host-web preview",
+    "compare:visual": "node tools/visual-compare/runComparison.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "phaser": "^3.90.0",
+    "phaser3-rex-plugins": "^1.80.19",
+    "pixelmatch": "^7.1.0",
+    "pngjs": "^7.0.0",
+    "typescript": "~5.9.3",
+    "vite": "^8.0.0"
+  }
+}

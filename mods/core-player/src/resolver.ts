@@ -3,28 +3,44 @@ import { PlayerDomain } from "./playerDomain";
 
 function resolvePointerMoveCommands(context: RuntimeCommandContext) {
   const { pointerTile, focusedResourceId, focusedStructureId, session } = context;
-  if (!pointerTile || focusedResourceId || focusedStructureId) return [];
-  if (pointerTile.x === session.player.x && pointerTile.y === session.player.y) return [];
+  if (!pointerTile) return [];
+  const current = PlayerDomain.currentTile(session.player);
+  if (pointerTile.x === current.x && pointerTile.y === current.y) return [];
 
-  const path = PlayerDomain.findPathToTarget(
-    { state: session, content: context.content },
-    pointerTile.x,
-    pointerTile.y
-  );
+  const movementContext = { state: session, content: context.content };
+  const directPath = !focusedResourceId && !focusedStructureId
+    ? PlayerDomain.findPathToTarget(
+        movementContext,
+        pointerTile.x,
+        pointerTile.y
+      )
+    : null;
+  const adjacentPath = focusedResourceId || focusedStructureId
+    ? PlayerDomain.findPathToAdjacentTarget(
+        movementContext,
+        pointerTile.x,
+        pointerTile.y
+      )
+    : null;
+  const targetPath = directPath ?? adjacentPath?.path ?? null;
+  const targetDestination = adjacentPath?.destination ?? pointerTile;
+  const actionLabel = focusedResourceId || focusedStructureId
+    ? `Move near ${pointerTile.x},${pointerTile.y}`
+    : `Move to ${pointerTile.x},${pointerTile.y}`;
 
   return [
     {
-      id: "player:move-pointer-step",
-      label: path
-        ? `Move to ${pointerTile.x},${pointerTile.y} (${path.length} step${path.length === 1 ? "" : "s"})`
-        : `Move to ${pointerTile.x},${pointerTile.y}`,
-      enabled: path !== null && path.length > 0,
-      reasonDisabled: path !== null ? undefined : "No valid path to that tile.",
+      id: `player:move-pointer-step:${targetDestination.x}:${targetDestination.y}`,
+      label: targetPath
+        ? `${actionLabel} (${targetPath.length} step${targetPath.length === 1 ? "" : "s"})`
+        : actionLabel,
+      enabled: targetPath !== null && targetPath.length > 0,
+      reasonDisabled: targetPath !== null ? undefined : "No valid path to that target.",
       binding: "MouseRight",
       actionId: "player:set-move-target",
       sourceModId: "core:player",
       priority: 40,
-      payload: { x: pointerTile.x, y: pointerTile.y }
+      payload: { x: targetDestination.x, y: targetDestination.y }
     },
     ...(session.player.moveTarget
       ? [{

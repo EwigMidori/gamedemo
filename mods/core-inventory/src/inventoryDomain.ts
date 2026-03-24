@@ -14,13 +14,15 @@ class InventoryDomainModel {
     const item = this.findItem(content, entry.itemId);
     const label = item?.label ?? entry.itemId;
     const tags = item?.tags.length ? item.tags.join(", ") : "untagged";
+    const category = item?.category ?? "misc";
+    const group = item?.uiGroup ?? "general";
     return {
       label,
       summary: `${label} x${entry.quantity}`,
-      detail: `Inventory item ${entry.itemId}. Tags: ${tags}.`,
+      detail: `Category ${category}. Group ${group}. Tags: ${tags}.`,
       presentation: {
         summary: `Selected stack: ${label}.`,
-        detail: `Quantity ${entry.quantity}. Item id: ${entry.itemId}.`,
+        detail: `Quantity ${entry.quantity}. Category ${category}. Group ${group}.`,
         rewards: [{
           itemId: entry.itemId,
           quantity: entry.quantity

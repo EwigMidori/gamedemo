@@ -9,18 +9,18 @@ const needsDecay: RuntimeSystem = {
     state.timeSeconds += deltaSeconds;
     SurvivalDomain.updateDay(state);
 
-    const hungerDecayPerSecond = 100 / (SurvivalDomain.DAY_LENGTH_SECONDS * 2.75);
+    const hungerDecayPerSecond = 100 / (SurvivalDomain.DAY_LENGTH_SECONDS * 3);
     state.needs.hunger = Math.max(0, state.needs.hunger - deltaSeconds * hungerDecayPerSecond);
 
     if (state.needs.hunger <= 0) {
-      state.needs.health = Math.max(0, state.needs.health - deltaSeconds * 4.5);
+      state.needs.health = Math.max(0, state.needs.health - deltaSeconds * 6);
       if (state.logs.at(-1) !== "Starvation damage active.") {
         state.logs.push("Starvation damage active.");
       }
       return;
     }
 
-    state.needs.health = Math.min(100, state.needs.health + deltaSeconds * 0.8);
+    state.needs.health = Math.min(100, state.needs.health + deltaSeconds * 1.2);
   }
 };
 

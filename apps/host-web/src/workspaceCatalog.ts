@@ -34,7 +34,7 @@ export const runtimeProfiles: RuntimeProfileDefinition[] = [
   {
     id: "creative-core",
     label: "Creative Core",
-    rootMods: ["core:base", "core:worldgen", "core:ui-hud", "core:inventory", "core:player", "core:building"],
+    rootMods: ["core:base", "core:worldgen", "core:ui-hud", "core:inventory", "core:player", "core:building", "core:survival", "core:gathering", "core:crafting"],
     description: "A leaner profile focused on movement, world preview, and building."
   }
 ];

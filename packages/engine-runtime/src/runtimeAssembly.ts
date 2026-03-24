@@ -184,12 +184,35 @@ class RuntimeSessionRegistry {
     const state: RuntimeSessionState = {
       timeSeconds: 0,
       day: 1,
-      world: { width: 0, height: 0, tiles: [] },
-      player: { x: 3, y: 3, moveTarget: null, movePath: [] },
+      world: { originX: 0, originY: 0, width: 0, height: 0, tiles: [] },
+      player: {
+        x: 3,
+        y: 3,
+        movementInput: {
+          up: false,
+          left: false,
+          down: false,
+          right: false,
+          facing: "down",
+          sprintFacing: null,
+          sprintUntil: 0,
+          lastTapAt: {
+            up: Number.NEGATIVE_INFINITY,
+            left: Number.NEGATIVE_INFINITY,
+            down: Number.NEGATIVE_INFINITY,
+            right: Number.NEGATIVE_INFINITY
+          }
+        },
+        motion: null,
+        moveTarget: null,
+        movePath: []
+      },
       needs: { hunger: 100, health: 100 },
       inventory: [],
       resources: [],
       placedStructures: [],
+      plantedResources: [],
+      droppedItems: [],
       logs: []
     };
 

@@ -37,6 +37,17 @@ class HostApplication {
       .filter(Boolean);
   }
 
+  private startSessionLoop(sessionController: HostSessionControllerType): void {
+    let lastFrameTime = performance.now();
+    const step = (frameTime: number) => {
+      const deltaSeconds = Math.min(0.05, Math.max(0, (frameTime - lastFrameTime) / 1000));
+      lastFrameTime = frameTime;
+      sessionController.tick(deltaSeconds);
+      window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+  }
+
   async boot(): Promise<void> {
     const mode = window.location.pathname === DEBUG_PATH ? "debug" : "game";
     const selectedProfileId = this.readSelectedProfileId();
@@ -86,12 +97,22 @@ class HostApplication {
       });
     }
 
-    window.setInterval(() => {
-      sessionController.tick(1);
-    }, 1000);
+    this.startSessionLoop(sessionController);
 
     window.addEventListener("keydown", (event) => {
+      sessionController.setMovementKey(event.code, true);
+      if (event.code === "KeyE") {
+        sessionController.toggleHandcraftPanel();
+        return;
+      }
+      if (event.code === "Escape" && sessionController.isHandcraftOpen()) {
+        sessionController.closeHandcraftPanel();
+        return;
+      }
       sessionController.runKeyboardInput(event.code);
+    });
+    window.addEventListener("keyup", (event) => {
+      sessionController.setMovementKey(event.code, false);
     });
 
     refs.previewRoot.addEventListener("contextmenu", (event) => {
@@ -107,15 +128,31 @@ class HostApplication {
       onPointerPrimaryAction: (tile) => {
         sessionController.runPointerPrimaryAction(tile);
       },
+      onPointerHoldAction: (tile) => {
+        sessionController.runPointerHoldAction(tile);
+      },
+      onPointerHoldCancel: () => {
+        sessionController.cancelPointerHoldAction();
+      },
       onInventorySlotSelect: (slotIndex) => {
         sessionController.selectInventorySlot(slotIndex);
       },
+      onHandcraftRecipeCraft: (recipeId) => {
+        sessionController.craftHandRecipe(recipeId);
+      },
+      onHandcraftClose: () => {
+        sessionController.closeHandcraftPanel();
+      },
+      getPointerHoldSpec: (tile) => sessionController.getPointerHoldSpec(tile),
       getSelectedTile: () => sessionController.getSelectedTile(),
       getSelectedTileMarker: () => sessionController.getSelectedTileMarker(),
+      getHandcraftOpen: () => sessionController.isHandcraftOpen(),
       getCommandInput: () => sessionController.getCommandInput()
     });
   }
 }
+
+type HostSessionControllerType = ReturnType<typeof HostSessionController.create>;
 
 const host = new HostApplication(app, runtimeProfiles);
 host.boot().catch((error: unknown) => {
