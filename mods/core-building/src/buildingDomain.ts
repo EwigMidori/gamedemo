@@ -87,8 +87,10 @@ class BuildingDomainModel {
     const inventory = new VanillaInventory(state.inventory, new Map(content.items.map((entry) => [entry.id, entry])));
     inventory.remove(structure.placeableItemId ?? "", 1);
     inventory.normalizeSize(12);
+    const uniqueId = state.nextStructureId ?? 1;
+    state.nextStructureId = uniqueId + 1; 
     state.placedStructures.push({
-      id: `${structure.id}:${state.placedStructures.length + 1}`,
+      id: `${structure.id}:${uniqueId}`,
       structureId: structure.id,
       x,
       y,

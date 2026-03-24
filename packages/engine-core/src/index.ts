@@ -254,6 +254,7 @@ export interface RuntimeSessionState {
   plantedResources?: PlantedResourceState[];
   droppedItems?: DroppedItemState[];
   logs: string[];
+  nextStructureId: number;
 }
 
 export interface RuntimeSystemContext {
