@@ -8,6 +8,7 @@ import type {
 import type { RuntimeSession } from "@gamedemo/engine-runtime";
 import { RuntimeAssetLibrary } from "./runtimeAssets";
 import { RuntimeContentIndex } from "./runtimeContentIndex";
+import { StructureAutotileResolver } from "./structureAutotileResolver";
 import { RuntimeTheme } from "./runtimeTheme";
 
 interface GameViewportOptions {
@@ -32,6 +33,7 @@ export class GameViewport {
   private readonly playerSprite: Phaser.GameObjects.Sprite;
   private readonly cursorHighlight: Phaser.GameObjects.Rectangle;
   private readonly moveTargetMarker: Phaser.GameObjects.Container;
+  private readonly structureAutotile = new StructureAutotileResolver();
   private lastFacingFrame = 0;
   private previousLogicalPosition: { x: number; y: number } | null = null;
   private renderedTerrainCount = 0;
@@ -208,14 +210,25 @@ export class GameViewport {
       const stage = definition?.growableStages?.length && structure.growth !== null && structure.growth !== undefined
         ? this.resolveGrowthStage(definition, structure.growth)
         : null;
+      const autotileFrame = this.structureAutotile.resolveFrame(
+        structure,
+        definition,
+        snapshot.placedStructures
+      );
+      const frame = autotileFrame
+        ?? (structure.isOpen ? definition?.openFrame : null)
+        ?? stage?.frame
+        ?? definition?.frame
+        ?? RuntimeTheme.structureFrameFor(structure.structureId);
+      const tint = stage?.tint ?? RuntimeTheme.structureTintFor(structure.structureId);
       sprite
         .setVisible(true)
         .setPosition(
           structure.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
           structure.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5
         )
-        .setFrame(stage?.frame ?? definition?.frame ?? RuntimeTheme.structureFrameFor(structure.structureId))
-        .setTint(stage?.tint ?? RuntimeTheme.objectTint);
+        .setFrame(frame)
+        .setTint(tint);
       this.structureSprites.set(structure.id, sprite);
     }
     for (const [id, sprite] of this.structureSprites.entries()) {

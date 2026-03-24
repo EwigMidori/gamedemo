@@ -92,6 +92,8 @@ class BuildingDomainModel {
       structureId: structure.id,
       x,
       y,
+      isOpen: structure.autoOpen ? false : null,
+      autoCloseAt: null,
       growth: structure.growableStages ? 0 : null,
       inventory: structure.storageSlots
         ? Array.from({ length: structure.storageSlots }, () => ({ itemId: "", quantity: 0 }))
@@ -120,6 +122,28 @@ class BuildingDomainModel {
         continue;
       }
       structure.growth = Math.min(1, current + deltaSeconds / structureDef.growSeconds);
+    }
+  }
+
+  tickDoors(content: ContentSnapshot, state: RuntimeSessionState): void {
+    for (const structure of state.placedStructures) {
+      const definition = content.structures.find((entry) => entry.id === structure.structureId) ?? null;
+      if (!definition?.autoOpen) {
+        continue;
+      }
+      if (this.playerNearDoor(state, structure.x, structure.y)) {
+        structure.isOpen = true;
+        structure.autoCloseAt = state.timeSeconds + 0.28;
+        continue;
+      }
+      if (!structure.isOpen) {
+        continue;
+      }
+      if ((structure.autoCloseAt ?? state.timeSeconds) > state.timeSeconds) {
+        continue;
+      }
+      structure.isOpen = false;
+      structure.autoCloseAt = null;
     }
   }
 
@@ -232,6 +256,10 @@ class BuildingDomainModel {
         : "No placeable structure is selected.",
       rewards: structure ? [{ itemId: structure.id, quantity: 1 }] : []
     };
+  }
+
+  private playerNearDoor(state: RuntimeSessionState, x: number, y: number): boolean {
+    return Math.max(Math.abs(state.player.x - x), Math.abs(state.player.y - y)) <= 0.9;
   }
 }
 

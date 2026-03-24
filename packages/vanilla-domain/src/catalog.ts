@@ -166,6 +166,16 @@ export class VanillaCatalog {
       uiPriority: 20
     });
     builder.registerItem({
+      id: "core:door",
+      label: "Door",
+      stackSize: 20,
+      tags: ["material", "placeable"],
+      iconFrame: 13,
+      category: "material",
+      uiGroup: "utility",
+      uiPriority: 25
+    });
+    builder.registerItem({
       id: "core:wood-axe",
       label: "Wood Axe",
       stackSize: 1,
@@ -293,6 +303,25 @@ export class VanillaCatalog {
         ineffectiveDropMultiplier: 1
       }
     });
+    builder.registerStructure({
+      id: "core:door",
+      label: "Door",
+      blocksMovement: false,
+      tags: ["building", "door"],
+      frame: 36,
+      openFrame: 37,
+      placeableItemId: "core:door",
+      pickupItemId: "core:door",
+      autoOpen: true,
+      breakable: {
+        preferredToolTags: ["axe"],
+        hardness: 0.22,
+        effectivePower: 1,
+        ineffectivePower: 0.9,
+        effectiveDropMultiplier: 1,
+        ineffectiveDropMultiplier: 1
+      }
+    });
   }
 
   private registerRecipes(builder: ContentRegistryBuilder): void {
@@ -323,6 +352,13 @@ export class VanillaCatalog {
       output: { itemId: "core:chest", quantity: 1 },
       cost: { "core:plank": 8 },
       stationId: "workbench"
+    });
+    builder.registerRecipe({
+      id: "recipe:door",
+      label: "Door",
+      output: { itemId: "core:door", quantity: 1 },
+      cost: { "core:plank": 4 },
+      stationId: null
     });
     builder.registerRecipe({
       id: "recipe:wood-axe",

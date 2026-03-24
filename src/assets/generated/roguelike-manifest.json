@@ -36,7 +36,9 @@
     "farm_seeded": 32,
     "farm_growing": 33,
     "farm_ready": 34,
-    "chest": 35
+    "chest": 35,
+    "door_closed": 36,
+    "door_open": 37
   },
   "ui": {
     "heart_full": 0,
@@ -52,7 +54,8 @@
     "plank": 10,
     "brick": 11,
     "sapling": 12,
-    "chest": 13
+    "chest": 13,
+    "door": 14
   },
   "source": "roguelike-16-alpha.png"
 }

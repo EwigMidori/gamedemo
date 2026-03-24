@@ -35,6 +35,8 @@ GENERATED_WORLD_FRAMES = (
         "farm_growing",
         "farm_ready",
         "chest",
+        "door_closed",
+        "door_open",
     ]
 )
 
@@ -56,6 +58,7 @@ UI_GENERATED_FRAMES = [
     "brick",
     "sapling",
     "chest",
+    "door",
 ]
 
 WORLD_GRADES: dict[str, dict[str, object]] = {
@@ -224,6 +227,21 @@ def draw_chest_icon() -> Image.Image:
     return img
 
 
+def draw_door_icon() -> Image.Image:
+    img = make_blank_icon()
+    draw = ImageDraw.Draw(img)
+    wood = (156, 108, 66, 255)
+    wood_dark = (108, 70, 42, 255)
+    wood_light = (198, 146, 94, 255)
+    handle = (220, 188, 112, 255)
+    draw.rounded_rectangle((3, 2, 12, 14), radius=1, fill=wood)
+    draw.rectangle((3, 2, 12, 3), fill=wood_light)
+    draw.rectangle((3, 13, 12, 14), fill=wood_dark)
+    draw.rectangle((7, 3, 8, 13), fill=wood_dark)
+    draw.ellipse((9, 7, 10, 8), fill=handle)
+    return img
+
+
 def draw_sapling_stage(stage: str) -> Image.Image:
     img = make_blank_icon()
     draw = ImageDraw.Draw(img)
@@ -347,6 +365,8 @@ def build_generated_ui_frame(name: str) -> Image.Image:
         return draw_sapling_icon()
     if name == "chest":
         return draw_chest_icon()
+    if name == "door":
+        return draw_door_icon()
     raise KeyError(f"Unknown generated UI frame: {name}")
 
 
@@ -394,6 +414,26 @@ def draw_wall_autotile(mask: int) -> Image.Image:
     return img
 
 
+def draw_door_world(opened: bool) -> Image.Image:
+    img = Image.new("RGBA", (TILE, TILE), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    wood = (156, 108, 66, 255)
+    wood_dark = (108, 70, 42, 255)
+    wood_light = (198, 146, 94, 255)
+    handle = (220, 188, 112, 255)
+    if opened:
+        draw.polygon([(10, 2), (13, 4), (13, 14), (10, 13)], fill=(124, 84, 52, 255))
+        draw.line((10, 2, 10, 13), fill=wood_dark, width=1)
+        draw.ellipse((11, 7, 12, 8), fill=handle)
+        return img
+    draw.rounded_rectangle((4, 2, 11, 14), radius=1, fill=wood)
+    draw.rectangle((4, 2, 11, 3), fill=wood_light)
+    draw.rectangle((4, 13, 11, 14), fill=wood_dark)
+    draw.rectangle((7, 3, 8, 13), fill=wood_dark)
+    draw.ellipse((9, 7, 10, 8), fill=handle)
+    return img
+
+
 def build_generated_world_frame(name: str) -> Image.Image:
     if name.startswith("wall_mask_"):
         return draw_wall_autotile(int(name.split("_")[-1]))
@@ -415,6 +455,10 @@ def build_generated_world_frame(name: str) -> Image.Image:
         return draw_farm_stage("ready")
     if name == "chest":
         return draw_chest_world()
+    if name == "door_closed":
+        return draw_door_world(False)
+    if name == "door_open":
+        return draw_door_world(True)
     raise KeyError(f"Unknown generated world frame: {name}")
 
 

@@ -67,6 +67,8 @@ export interface StructureDef {
   utilityStationId?: string;
   autotileGroup?: string;
   autotileFrameBase?: number;
+  openFrame?: number;
+  autoOpen?: boolean;
   growableStages?: Array<{
     minProgress: number;
     frame: number;
@@ -212,6 +214,8 @@ export interface PlacedStructure {
   structureId: string;
   x: number;
   y: number;
+  isOpen?: boolean | null;
+  autoCloseAt?: number | null;
   growth?: number | null;
   inventory?: InventoryEntry[] | null;
 }

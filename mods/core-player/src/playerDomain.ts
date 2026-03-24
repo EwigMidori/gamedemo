@@ -68,6 +68,9 @@ export class PlayerDomain {
         continue;
       }
       const definition = VanillaWorldLookup.structureDef(context.content, structure.structureId);
+      if (definition?.autoOpen) {
+        continue;
+      }
       if (definition?.blocksMovement ?? true) {
         return false;
       }

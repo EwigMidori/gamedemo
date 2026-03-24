@@ -178,7 +178,3 @@ The rewrite is considered architecturally successful when:
 - do not keep unnamespaced content IDs
 - do not let old file layout determine workspace package layout
 - do not treat dynamic external mods as a separate plugin architecture
-
-## Immediate Next Step
-
-The next implementation step after approving these RFCs is to create the actual workspace skeleton and core package manifests, not to continue modifying the legacy single-package app.

@@ -6,7 +6,9 @@ const growthSimulation: RuntimeSystem = {
   phase: "simulation",
   description: "Advances growable placed structures such as farm plots.",
   run({ content, deltaSeconds, state }) {
-    BuildingDomain.createModel().tickGrowth(content, state, deltaSeconds);
+    const model = BuildingDomain.createModel();
+    model.tickGrowth(content, state, deltaSeconds);
+    model.tickDoors(content, state);
   }
 };
 

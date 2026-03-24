@@ -29,6 +29,7 @@ export class RuntimeTheme {
     "core:sapling": 12,
     "core:workbench": 13,
     "core:chest": 13,
+    "core:door": 13,
     "core:wood-axe": 14,
     "core:wood-pickaxe": 15,
     "survival:ration": 7,
@@ -39,7 +40,16 @@ export class RuntimeTheme {
     "core:wall": 8,
     "core:farm": 9,
     "core:workbench-station": 10,
-    "core:chest-storage": 35
+    "core:chest-storage": 35,
+    "core:door": 36
+  };
+  static readonly structureTint: Record<string, number> = {
+    "core:wall": 0xc79a68,
+    "core:door": 0xd2a06b,
+    "core:campfire": 0xd7d1b8,
+    "core:farm": 0xd7d1b8,
+    "core:workbench-station": 0xd7d1b8,
+    "core:chest-storage": 0xd7d1b8
   };
 
   static terrainFrame(terrainId: string): number {
@@ -62,6 +72,10 @@ export class RuntimeTheme {
 
   static structureFrameFor(structureId: string): number {
     return this.structureFrame[structureId] ?? 192;
+  }
+
+  static structureTintFor(structureId: string): number {
+    return this.structureTint[structureId] ?? this.objectTint;
   }
 
   static itemFrameFor(itemId: string): number {
