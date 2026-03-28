@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1774708790 "main.aux" "main.bbl" "main" 1774708791 0
+["bibtex main"] 1774709454 "main.aux" "main.bbl" "main" 1774709486 0
   "./references.bib" 1774708542 936 597e435a0c33ca70bcb0366f82ec2bcc ""
   "/usr/local/texlive/2023/texmf-dist/bibtex/bst/ieeetran/IEEEtran.bst" 1440712899 57748 7c8250ecf02814ce6ddc0cdbb63df1dd ""
-  "main.aux" 1774708791 3326 9027f993f397f5fd6c8f5f53a7bc0a55 "pdflatex"
+  "main.aux" 1774709486 3326 5c0bb7771e4e3dfc9fe16504d0714101 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1774708790 "/Users/zijingzhang/ewig/gamedemo/docs/proposal/main.tex" "main.pdf" "main" 1774708791 0
-  "/Users/zijingzhang/ewig/gamedemo/docs/proposal/main.tex" 1774708788 20446 180aba2b641efeb3f6ac0ade68edb4a3 ""
+["pdflatex"] 1774709485 "/Users/zijingzhang/ewig/gamedemo/docs/proposal/main.tex" "main.pdf" "main" 1774709486 0
+  "/Users/zijingzhang/ewig/gamedemo/docs/proposal/main.tex" 1774709453 22990 76eb7e155a9fe5cd8605721130d67b8c ""
   "/usr/local/texlive/2023/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1254269338 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/local/texlive/2023/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2023/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1136768653 2172 fd0c924230362ff848a33632ed45dc23 ""
@@ -96,10 +96,10 @@
   "/usr/local/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1683095007 4623355 b8cad38412faebe1ce5b780a45db67bd ""
   "/usr/local/texlive/2023/texmf-var/web2c/pdftex/pdflatex.fmt" 1683094953 7883463 64b22773e165c50ff70a520160796b9d ""
   "/usr/local/texlive/2023/texmf.cnf" 1678822455 577 1b2b1af17af2508fb20dd85783af4050 ""
-  "main.aux" 1774708791 3326 9027f993f397f5fd6c8f5f53a7bc0a55 "pdflatex"
-  "main.bbl" 1774708790 1472 a8ec3873b4cfbbd91e3a4ea42071f0ac "bibtex main"
-  "main.out" 1774708791 3004 5a2bdea173db5658e8771f664c96a93c "pdflatex"
-  "main.tex" 1774708788 20446 180aba2b641efeb3f6ac0ade68edb4a3 ""
+  "main.aux" 1774709486 3326 5c0bb7771e4e3dfc9fe16504d0714101 "pdflatex"
+  "main.bbl" 1774709464 1478 59c94d7b26d3a8cf2ca6fee624201916 "bibtex main"
+  "main.out" 1774709486 3004 5a2bdea173db5658e8771f664c96a93c "pdflatex"
+  "main.tex" 1774709453 22990 76eb7e155a9fe5cd8605721130d67b8c ""
   (generated)
   "main.aux"
   "main.log"
