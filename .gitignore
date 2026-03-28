@@ -26,3 +26,11 @@ dist-ssr
 .venv
 .tmp
 artifacts
+
+# LaTeX proposal build artifacts
+docs/proposal/*.aux
+docs/proposal/*.bbl
+docs/proposal/*.blg
+docs/proposal/*.log
+docs/proposal/*.out
+docs/proposal/*.pdf

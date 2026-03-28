@@ -1,0 +1,170 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{cite}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue,
+  pdftitle={Frontier Colony Proposal},
+  pdfauthor={Game Project Team}
+}
+
+\setlist[itemize]{topsep=3pt,itemsep=1pt,leftmargin=1.5em}
+\setlist[enumerate]{topsep=3pt,itemsep=1pt,leftmargin=1.5em}
+
+\title{\textbf{Frontier Colony}\\Game Proposal}
+\author{Game Project Team}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Frontier Colony is proposed as a sandbox survival and colony-building game that combines direct world interaction, automated settlement management, event-driven storytelling, and long-term multi-settlement expansion. The project draws inspiration from the freeform gathering and building of \textit{Minecraft}, the colonist automation and emergent storytelling of \textit{RimWorld}, the expansionary scale associated with the \textit{Civilization} series, and the agricultural and life-simulation rhythms of \textit{Stardew Valley}. The design goal is to create a continuous progression from individual survival to coordinated settlement governance and, eventually, to planetary-scale colonial development.
+
+The proposal addresses a central design problem: once automation becomes effective, colony games risk reducing the player to a passive observer. To avoid that outcome, automation is framed here as a mechanism for removing repetitive labor rather than replacing strategic agency. High-level decisions concerning spatial planning, labor priorities, resource distribution, settlement specialization, expansion routes, and crisis response remain under player control. In parallel, environmental, social, and exploration events are intended to continuously disrupt equilibrium, forcing renewed decision-making and keeping one or more players actively engaged in operating the colony.
+\end{abstract}
+
+\section{Motivation and Design Background}
+Sandbox colony games provide an unusually strong foundation for a course project because they integrate multiple systems within a single coherent world. Exploration, gathering, construction, production, logistics, population management, spatial planning, and narrative emergence can all be connected through one gameplay structure. This makes the genre especially suitable for demonstrating systems thinking, mechanical cohesion, and long-term player motivation rather than isolated features or one-off interactions.
+
+Many survival crafting games are highly engaging in their early stages because scarcity, danger, and uncertainty create immediate pressure. However, once infrastructure stabilizes, those games can become repetitive if the player continues to perform the same low-level tasks. By contrast, management simulations often offer greater systemic depth later on, yet they may feel abstract at the beginning because the player is not strongly embodied in the world. Frontier Colony is motivated by the attempt to bridge these two trajectories. The early game is intended to preserve tactile survival pressure and direct manipulation of the environment, while the mid and late game gradually transition toward labor organization, automated production, event response, and multi-settlement governance.
+
+The project is also motivated by interest in emergent narrative. Rather than relying primarily on authored plot sequences, the game is intended to generate stories through interactions among systems. A storm that destroys crop output, a newly recruited engineer who restructures production, a transportation failure that creates famine in an outer settlement, or the discovery of ruins that alter expansion priorities all serve as examples of events that can produce memorable narratives without requiring a fixed script. In this sense, the proposal is concerned not only with building a playable system, but with building conditions under which stories can arise from play itself \cite{schell2020,adams2014}.
+
+\section{Inspiration and Four Basic Game Elements}
+\subsection{Inspirational Sources}
+The proposal is informed by four major references.
+
+\textit{Minecraft} demonstrates the value of direct resource gathering, construction, and persistent world modification. Its key lesson is that the environment should be transformable, allowing players to leave visible traces of agency in the world \cite{minecraft}.
+
+\textit{RimWorld} illustrates how labor priorities, colonist roles, crisis management, and emergent storytelling can transform a settlement into a living social system. Its relevance lies less in surface similarity and more in the way it turns management into a source of drama \cite{rimworld}.
+
+The \textit{Civilization} series provides a useful model of scale. The project does not seek to reproduce turn-based 4X strategy, but it does adopt the idea that gameplay can evolve from local development toward broader territorial organization and governance \cite{civilization}.
+
+\textit{Stardew Valley} provides a contrasting lesson: production loops can remain engaging when they are embedded in everyday rhythms such as farming, storage, crafting, and seasonal routine. This reference is important for maintaining a sense of life and continuity rather than reducing the colony to abstract throughput \cite{stardew}.
+
+\subsection{Four Basic Game Elements}
+From the perspective of foundational game elements, the proposal is structured as follows.
+
+\textbf{Player.} The player begins as a frontier settler struggling to survive in an unfamiliar environment. Over time, that role expands into settlement manager, coordinator of multiple colonies, and planner of long-term expansion.
+
+\textbf{Goal.} Short-term goals focus on survival and establishing the first viable settlement. Mid-term goals center on stabilizing production through buildings, population growth, and automated labor. Long-term goals involve building specialized settlements, coordinating them efficiently, and developing a prosperous colony network across the planet.
+
+\textbf{Rules.} Resources must be explored and gathered, structures require material investment, non-player colonists operate according to assigned roles and priorities, events continuously disturb existing balance, and expansion introduces new logistical and social challenges.
+
+\textbf{Feedback.} Player actions are reflected through visible changes in terrain, construction, inventory flow, colonist behavior, event outcomes, and settlement growth. The world is expected to function as a readable feedback system in which decisions generate persistent consequences.
+
+\section{Game Idea}
+\subsection{Core Concept}
+Frontier Colony is centered on the idea of building a sustainable and expandable colonial civilization from nothing. The objective is not merely to construct an attractive base or to complete a sequence of predefined missions. Instead, the player must gradually assemble a functioning social and production system on a frontier planet where resources, geography, and risks vary across regions. The game therefore combines direct environmental manipulation with indirect systemic control.
+
+Two layers of pleasure are intended to reinforce one another. The first is the pleasure of directly changing the world: chopping wood, gathering ore, laying out farmland, placing workshops, and visibly turning wilderness into infrastructure. The second is the pleasure of indirect organization: once colonists, facilities, and logistics networks exist, the player increasingly shapes the colony through planning, policy, and structural decisions rather than manual execution. The progression from acting within the system to designing the system is the central experiential arc of the proposal.
+
+\subsection{How the Game Is Played}
+The game begins in a largely unknown wilderness. Nearby zones may contain forests, mineral deposits, plains, rivers, mountains, or ruins, but their usefulness and danger must be discovered through exploration. The initial priority is survival. Wood, stone, and food must be secured quickly; simple tools and shelter must be constructed; and the settlement must be prepared to survive early pressures such as scarcity, isolation, and environmental hazard.
+
+Once immediate survival is no longer at risk, the emphasis shifts from possession of raw resources to the organization of space and work. Questions of layout become important: where farmland should be placed relative to storage, how workshops connect to supply lines, whether residential and industrial zones should be separated, and how defensive structures should protect critical infrastructure. The settlement begins to function not as a temporary camp, but as a deliberately organized colony.
+
+At this stage, colonists become the major driver of systemic depth. Recruited settlers can take on tasks such as farming, hauling, mining, manufacturing, construction, repair, patrol, and exploration. Their behavior is to be governed by role assignments and priority settings rather than by direct constant control. This introduces a shift in player activity. Manual labor gradually decreases, while planning labor and institutional design increase.
+
+Eventually, the game expands beyond a single settlement. Different regions can support different specializations: one colony may be optimized for food production, another for mineral extraction, another for advanced industry, and another for frontier defense or long-range exploration. Transportation and population movement link these settlements into a broader colonial network. At that point, the game no longer concerns only the improvement of one base, but the governance of a distributed system.
+
+\subsection{Core Game Cycle}
+The core loop can be summarized as follows:
+\begin{enumerate}
+  \item Explore the environment and identify resources, risks, and suitable settlement sites.
+  \item Gather materials to address food, shelter, and safety.
+  \item Craft tools and structures to improve extraction and construction efficiency.
+  \item Build a functioning settlement with agriculture, storage, production, housing, and defense.
+  \item Recruit colonists and use role assignment and task priorities to achieve partial automation.
+  \item Respond to events by reorganizing layouts, resources, and population structure.
+  \item Expand into additional settlements and establish interdependent colonial networks.
+  \item Continue producing, governing, expanding, and generating new stories at a larger scale.
+\end{enumerate}
+
+This loop is not intended as flat repetition. Each cycle occurs at a higher level of complexity than the previous one. Early play asks whether survival is possible. Mid-game play asks whether a settlement can remain stable and efficient. Late-game play asks whether multiple settlements can be coordinated under changing conditions.
+
+\subsection{Motivation Flow}
+Long-term engagement depends on a layered goal structure.
+
+Short-term motivation comes from scarcity and risk. Immediate tasks such as securing food, constructing shelter, and surviving environmental pressures produce urgency and concrete accomplishment.
+
+Mid-term motivation comes from efficiency and stabilization. Once the colony exists, the player is driven to improve it: expanding agricultural systems, building storage and industry, organizing labor, and reducing bottlenecks. Optimization and visible growth become the major reward.
+
+Long-term motivation comes from expansion and governance. The player is expected to move beyond a single settlement and begin managing a distributed network with differentiated functions, logistical dependencies, and strategic vulnerabilities. The resulting identity shift, from survivor to operator of a colonial system, provides the project with its strongest long-range progression structure.
+
+\subsection{Preventing Automation from Becoming Boredom}
+Automation can increase efficiency while decreasing engagement if it removes meaningful decisions. The design therefore treats automation strictly as execution support rather than as strategic replacement.
+
+First, colonists can carry out gathering, hauling, farming, production, and maintenance, but they do not determine macro-level priorities. Decisions about which settlement receives scarce materials, which district is expanded first, which population role should be increased, and which frontier region should be colonized remain with the player.
+
+Second, events are intended to continuously disrupt equilibrium. Environmental events may include storms, droughts, cold snaps, fires, disease, or resource depletion. Social events may include conflict, morale fluctuation, migration, recruitment of unusually skilled characters, or labor instability. Exploration events may include ruins, hazardous biomes, foreign contact, and technological discovery. Such events are not decorative interruptions; they are structural mechanisms that force re-evaluation of previous plans.
+
+Third, multi-settlement governance itself becomes a source of ongoing engagement. Even if one colony runs smoothly, the larger network may not. Transport lines can fail, one region can become dependent on another, industrial growth can outpace food production, or frontier expansion can expose the whole network to risk. Thus, higher automation in one local context creates opportunities for more complex involvement at a wider scale.
+
+Finally, if multiplayer operation is supported, several players can divide responsibilities across production planning, exploration, colonist management, and crisis response. In such a case, automation becomes a foundation for collaborative governance rather than a reason for disengagement.
+
+\subsection{World, Characters, and UI Journey}
+The setting is a frontier planet that has not yet been fully developed. Forests, plains, rivers, mines, mountains, deserts, ruins, and anomalous ecological zones provide distinct resources and risks. This geographic variation gives settlement placement strategic significance and makes expansion a spatial as well as economic decision.
+
+The player character functions as the initial frontier settler, while colonists form the social basis of the growing colony. Colonists are expected to possess different functional strengths, such as agriculture, engineering, hauling, defense, or exploration. Even if a full personality simulation is beyond the initial course scope, colonists should still be meaningful variables in both production and emergent narrative.
+
+The user interface is intended to evolve with the player role. Early UI should foreground personal condition, nearby resources, and basic interaction prompts. Mid-game UI should present building status, inventory flow, colonist roles, and event alerts. Late-game UI should support managerial understanding of relationships among settlements, population organization, and regional logistics. In this way, the UI journey mirrors the gameplay journey from individual survival to systemic oversight.
+
+\subsection{The Elemental Tetrad}
+\textbf{Mechanics.} Exploration, gathering, crafting, construction, farming, storage, logistics, role assignment, automation, event response, and multi-settlement expansion form the mechanical core.
+
+\textbf{Story.} Narrative emerges primarily through systems rather than a fixed plot. Crises, colonist arrivals, losses, discoveries, and expansion choices create individualized colonial histories.
+
+\textbf{Aesthetics.} The visual direction should prioritize readability, so that resources, buildings, colonist behavior, and stages of settlement development are legible. The intended feeling is that the world is being progressively shaped by player action.
+
+\textbf{Technology.} The technical structure should support web deployment and modular development, enabling resource systems, building systems, colonist systems, event systems, and world rules to evolve in parallel.
+
+\section{Plan}
+\subsection{Methodology}
+The project will follow an iterative development process rather than attempt a full colony simulation immediately. A minimal but coherent playable loop will be established first, and only then will the design expand into deeper automation, event complexity, and multi-settlement governance. This approach is suitable for a course context because it allows each stage to yield a demonstrable and testable result.
+
+The first stage focuses on basic survival and building: exploration, gathering, crafting, shelter construction, and initial survival pressure. The purpose is to ensure that a player can establish the first viable settlement.
+
+The second stage introduces colonists, task priorities, and baseline automation, shifting the experience from solitary survival to early colony formation.
+
+The third stage adds environmental, social, and exploration events in order to validate the central claim that automation should deepen rather than end player engagement.
+
+The fourth stage attempts to introduce multi-settlement expansion and a fuller management interface so that the game can begin to express regional governance rather than only local construction.
+
+\subsection{Platform}
+The target platform is the PC web browser. Browser deployment offers practical advantages for classroom presentation, collaborative development, and rapid iteration. It also allows development effort to remain focused on systems and interaction design rather than on heavy platform-specific integration.
+
+\subsection{Task List and Division of Labor}
+The work can be divided into four major modules.
+
+\textbf{Gameplay and Survival.} This area includes exploration, gathering, crafting, building, survival rules, and early-game balance. It determines whether the initial gameplay loop is clear and satisfying.
+
+\textbf{NPC and Automation.} This area includes colonist roles, task priority systems, automated execution logic, and the management gameplay that distinguishes the project from a simpler building simulator.
+
+\textbf{World and Events.} This area includes map generation, resource distribution, environmental events, social events, exploration events, and multi-settlement expansion rules. It is responsible for making the world dynamic and narratively generative.
+
+\textbf{UI and Presentation.} This area includes HUD design, inventory and facility presentation, event prompts, colonist status visualization, and overall player guidance. It is particularly important because the project becomes more managerial over time and therefore depends on clear information architecture.
+
+\subsection{Scope and Vision}
+The minimum deliverable for the course project is a playable prototype in which players can explore, gather, build, recruit at least a small group of colonists, and experience basic events that create the feeling of colony growth. In other words, the minimal scope should already communicate the shift from individual survival to settlement operation.
+
+The longer-term vision is substantially broader. The project ultimately aims to become a true colony sandbox in which players do not merely perfect one base, but construct multiple cooperating settlements, manage people and logistics across regions, and generate their own history of expansion on a frontier planet. This long-term ambition gives the proposal conceptual weight even if the course version necessarily implements only a subset.
+
+\section{Conclusion}
+Frontier Colony proposes a continuous sandbox structure that integrates direct building, colonist automation, dynamic events, and multi-settlement expansion. Its central value lies not only in immediate survival and construction, but in the gradual transformation of a fragile outpost into a stable settlement and, eventually, into a coordinated colonial network. By combining automation with disruption and scale, the proposal aims to preserve active decision-making throughout the full arc of play.
+
+For a course project, this design offers both a clear gameplay identity and strong systems-design value. It supports an immediately understandable playable loop while also opening space for management depth, emergent narrative, and long-term expansion. The result is intended to be not merely a feature collection, but a coherent proposal for a colony sandbox in which players remain continuously involved in the making and maintenance of a frontier civilization.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
