@@ -258,11 +258,15 @@ export class GameViewport {
     const entityX = x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
     const entityY = (y + 1) * RuntimeAssetLibrary.tileSize;
 
-    // Update position
+    // Update position and ensure visibility
     entity.x = worldX(entityX);
     entity.y = worldY(entityY);
     const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
     sprite?.setPosition(entityX, entityY);
+    // Ensure sprite is visible when entity comes back into view
+    if (sprite && !sprite.visible) {
+      sprite.setVisible(true);
+    }
 
     // Update frame/tint if provided
     if (frame !== undefined) {
@@ -276,10 +280,14 @@ export class GameViewport {
     entity.needsDepthUpdate = true;
     this.depthSorter.markDirty(id);
 
-    // Update shadow position
+    // Update shadow position and ensure visibility
     const shadow = this.entityShadows.get(id);
     if (shadow) {
       updateShadowPosition(shadow, entityX, entityY);
+      // Ensure shadow is visible when entity comes back into view
+      if (!shadow.sprite.visible) {
+        shadow.sprite.setVisible(true);
+      }
     }
   }
 
