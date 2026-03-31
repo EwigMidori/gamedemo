@@ -4,7 +4,8 @@ import type {
   RuntimePointerTile,
   RuntimeSessionState,
   StructureDef,
-  OccludableEntity
+  OccludableEntity,
+  FrustumBounds
 } from "@gamedemo/engine-core";
 import {
   ANCHOR_BOTTOM_CENTER,
@@ -18,7 +19,6 @@ import {
   shouldOccludePlayer,
   OcclusionManager,
   FrustumCuller,
-  createFrustumBoundsFromCamera,
   LayeredRenderPipeline,
   LODManager,
   ObjectPool,
@@ -521,9 +521,19 @@ export class GameViewport {
     const renderStart = performance.now();
     const visibleIds = new Set<string>();
 
-    // Get camera frustum for culling
+    // Fixed 40x40 view radius for consistent shadow rendering regardless of zoom
+    // This ensures shadows are always rendered within a predictable range
     const camera = this.scene.cameras.main;
-    const frustumBounds = createFrustumBoundsFromCamera(camera.worldView, camera.zoom);
+    const centerX = camera.worldView.x + camera.worldView.width / 2;
+    const centerY = camera.worldView.y + camera.worldView.height / 2;
+    const viewRadius = 40 * RuntimeAssetLibrary.tileSize; // 40 tiles radius
+    
+    const frustumBounds: FrustumBounds = {
+      left: centerX - viewRadius,
+      right: centerX + viewRadius,
+      top: centerY - viewRadius,
+      bottom: centerY + viewRadius
+    };
     const tileSize = RuntimeAssetLibrary.tileSize;
 
     // Process resources with frustum culling
