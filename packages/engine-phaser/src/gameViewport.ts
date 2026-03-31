@@ -101,7 +101,6 @@ export class GameViewport {
   private readonly camera: ObliqueCamera;
   private lastFacingFrame = 0;
   private previousLogicalPosition: { x: number; y: number } | null = null;
-  private renderedTerrainCount = 0;
   private depthBaseOffset = DEFAULT_DEPTH_BASE_OFFSET;
 
   // Performance monitoring
@@ -499,15 +498,18 @@ export class GameViewport {
     // Legacy terrain rendering (terrain is static, doesn't need depth sorting)
     this.renderTerrain();
 
+    // Calculate frustum bounds once for all renderers
+    const frustumBounds = this.calculateFrustumBounds();
+
     // Unified pseudo-3D rendering for dynamic entities
-    this.renderEntitiesUnified(snapshot);
+    this.renderEntitiesUnified(snapshot, frustumBounds);
 
     // Legacy rendering (still active during transition)
     // TODO: Remove once pseudo-3D rendering is validated
-    this.renderResources(snapshot);
-    this.renderPlantedResources(snapshot);
-    this.renderStructures(snapshot);
-    this.renderDrops(snapshot);
+    this.renderResources(snapshot, frustumBounds);
+    this.renderPlantedResources(snapshot, frustumBounds);
+    this.renderStructures(snapshot, frustumBounds);
+    this.renderDrops(snapshot, frustumBounds);
 
     // UI overlays
     this.renderMovePath(snapshot);
@@ -521,23 +523,9 @@ export class GameViewport {
    * Uses depth sorter for correct occlusion.
    * Integrates frustum culling for performance.
    */
-  private renderEntitiesUnified(snapshot: RuntimeSessionState): void {
+  private renderEntitiesUnified(snapshot: RuntimeSessionState, frustumBounds: FrustumBounds): void {
     const renderStart = performance.now();
     const visibleIds = new Set<string>();
-
-    // Fixed 40x40 view radius for consistent shadow rendering regardless of zoom
-    // This ensures shadows are always rendered within a predictable range
-    const camera = this.scene.cameras.main;
-    const centerX = camera.worldView.x + camera.worldView.width / 2;
-    const centerY = camera.worldView.y + camera.worldView.height / 2;
-    const viewRadius = 20 * RuntimeAssetLibrary.tileSize; // 20 tiles radius
-    
-    const frustumBounds: FrustumBounds = {
-      left: centerX - viewRadius,
-      right: centerX + viewRadius,
-      top: centerY - viewRadius,
-      bottom: centerY + viewRadius
-    };
     const tileSize = RuntimeAssetLibrary.tileSize;
 
     // Process resources with frustum culling
@@ -850,20 +838,45 @@ export class GameViewport {
   }
 
   private renderTerrain(): void {
-    const world = this.session.snapshot().world;
+    const snapshot = this.session.snapshot();
+    const world = snapshot.world;
+    const playerX = snapshot.player.x;
+    const playerY = snapshot.player.y;
+
     // Camera bounds removed to allow free movement
     // this.scene.cameras.main.setBounds(...)
-    if (world.tiles.length === this.renderedTerrainCount) {
-      return;
+
+    // PERF-12: Cleanup distant terrain sprites every 60 frames (~1 second)
+    if (this.frameCount % 60 === 0) {
+      this.cleanupDistantTerrainSprites(playerX, playerY);
     }
-    for (let index = this.renderedTerrainCount; index < world.tiles.length; index += 1) {
-      const tile = world.tiles[index];
-      const terrain = this.options.contentIndex.terrain(tile.terrainId);
+
+    // Calculate view bounds for terrain rendering (must cover entire screen)
+    const viewRadius = 40; // tiles - must be large enough to cover screen at all zoom levels
+    const minX = Math.floor(playerX - viewRadius);
+    const maxX = Math.ceil(playerX + viewRadius);
+    const minY = Math.floor(playerY - viewRadius);
+    const maxY = Math.ceil(playerY + viewRadius);
+
+    // Track how many sprites we created this frame
+    let createdCount = 0;
+
+    // Iterate through world tiles and render those within view that don't have sprites
+    for (const tile of world.tiles) {
+      // Skip tiles outside view bounds
+      if (tile.x < minX || tile.x > maxX || tile.y < minY || tile.y > maxY) {
+        continue;
+      }
+
       const key = `${tile.x},${tile.y}`;
-      // Terrain always renders at the very bottom layer
-      // It uses a fixed depth system that doesn't interact with entity Y-based sorting
-      // Terrain only needs minimal Y-sorting among themselves for overlap handling
-      // The -1000000 offset ensures terrain is always below any entity (players, objects, etc.)
+
+      // Skip if sprite already exists
+      if (this.terrainSprites.has(key)) {
+        continue;
+      }
+
+      // Create sprite for this tile
+      const terrain = this.options.contentIndex.terrain(tile.terrainId);
       const terrainDepth = this.depthBaseOffset - 1000000 + tile.y;
       const sprite = this.scene.add.image(
         tile.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
@@ -874,13 +887,60 @@ export class GameViewport {
         .setDepth(terrainDepth)
         .setTint(terrain?.tint ?? RuntimeTheme.terrainTint(tile.terrainId));
       this.terrainSprites.set(key, sprite);
+      createdCount++;
     }
-    this.renderedTerrainCount = world.tiles.length;
+
+    // Log if we created many sprites (indicates player returned to previously cleaned area)
+    if (createdCount > 100 && this.frameCount % 60 === 0) {
+      console.log(`[GameViewport] Created ${createdCount} terrain sprites (returned to cleaned area)`);
+    }
   }
 
-  private renderResources(snapshot: RuntimeSessionState): void {
+  /**
+   * Cleanup terrain sprites that are far from the player.
+   * PERF-12: World tiles optimization - prevent unbounded memory growth.
+   * Note: 50 tiles is ~2.5x the view frustum radius (20 tiles), enough buffer
+   * to avoid flickering while keeping memory usage bounded.
+   */
+  private cleanupDistantTerrainSprites(playerX: number, playerY: number): void {
+    const cleanupDistance = 50; // tiles - 2.5x view frustum radius
+    const cleanupDistanceSq = cleanupDistance * cleanupDistance;
+    const tileSize = RuntimeAssetLibrary.tileSize;
+
+    for (const [key, sprite] of this.terrainSprites.entries()) {
+      // Parse tile coordinates from key "x,y"
+      const [tileXStr, tileYStr] = key.split(',');
+      const tileX = parseInt(tileXStr ?? '0', 10);
+      const tileY = parseInt(tileYStr ?? '0', 10);
+
+      // Calculate squared distance to player
+      const dx = tileX - playerX;
+      const dy = tileY - playerY;
+      const distanceSq = dx * dx + dy * dy;
+
+      // Remove sprite if beyond cleanup distance
+      if (distanceSq > cleanupDistanceSq) {
+        sprite.destroy();
+        this.terrainSprites.delete(key);
+      }
+    }
+  }
+
+  private renderResources(snapshot: RuntimeSessionState, frustumBounds: FrustumBounds): void {
     const visibleIds = new Set<string>();
+    const tileSize = RuntimeAssetLibrary.tileSize;
+
     for (const resource of snapshot.resources) {
+      // Early frustum culling check - skip if not visible
+      const entityX = resource.x * tileSize + tileSize * 0.5;
+      const entityY = (resource.y + 1) * tileSize;
+      if (!this.frustumCuller.isVisible(entityX, entityY, frustumBounds)) {
+        // Hide if was previously visible
+        const sprite = this.resourceSprites.get(resource.id);
+        if (sprite) sprite.setVisible(false);
+        continue;
+      }
+
       const isRespawningTree = resource.depleted &&
         resource.resourceId === "resource:tree" &&
         resource.respawnAt !== null &&
@@ -889,19 +949,17 @@ export class GameViewport {
       if (resource.depleted && !isRespawningTree) {
         continue;
       }
-      if (!this.isTileVisible(resource.x, resource.y, 3)) {
-        continue;
-      }
+
       visibleIds.add(resource.id);
-      const worldY = (resource.y + 1) * RuntimeAssetLibrary.tileSize;
+      const worldY = (resource.y + 1) * tileSize;
       const resourceDepth = calculateDepth(worldY, 0, "resource", {
         baseOffset: this.depthBaseOffset
       });
       let sprite = this.resourceSprites.get(resource.id);
       if (!sprite) {
         sprite = this.scene.add.image(
-          resource.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          (resource.y + 1) * RuntimeAssetLibrary.tileSize,
+          resource.x * tileSize + tileSize * 0.5,
+          (resource.y + 1) * tileSize,
           RuntimeAssetLibrary.worldKey,
           0
         )
@@ -916,8 +974,8 @@ export class GameViewport {
       sprite
         .setVisible(true)
         .setPosition(
-          resource.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          (resource.y + 1) * RuntimeAssetLibrary.tileSize
+          resource.x * tileSize + tileSize * 0.5,
+          (resource.y + 1) * tileSize
         )
         .setFrame(frame)
         .setTint(isRespawningTree ? 0xbfa57f : RuntimeTheme.objectTint);
@@ -930,14 +988,23 @@ export class GameViewport {
     }
   }
 
-  private renderPlantedResources(snapshot: RuntimeSessionState): void {
+  private renderPlantedResources(snapshot: RuntimeSessionState, frustumBounds: FrustumBounds): void {
     const visibleIds = new Set<string>();
+    const tileSize = RuntimeAssetLibrary.tileSize;
+
     for (const planted of snapshot.plantedResources ?? []) {
-      if (!this.isTileVisible(planted.x, planted.y, 3)) {
+      // Early frustum culling check - skip if not visible
+      const entityX = planted.x * tileSize + tileSize * 0.5;
+      const entityY = (planted.y + 1) * tileSize;
+      if (!this.frustumCuller.isVisible(entityX, entityY, frustumBounds)) {
+        // Hide if was previously visible
+        const sprite = this.plantedSprites.get(planted.id);
+        if (sprite) sprite.setVisible(false);
         continue;
       }
+
       visibleIds.add(planted.id);
-      const worldY = (planted.y + 1) * RuntimeAssetLibrary.tileSize;
+      const worldY = (planted.y + 1) * tileSize;
       const plantedDepth = calculateDepth(worldY, 0, "planted", {
         baseOffset: this.depthBaseOffset
       });
@@ -945,8 +1012,8 @@ export class GameViewport {
       if (!sprite) {
         // Create at correct position immediately to avoid showing at (0,0)
         sprite = this.scene.add.image(
-          planted.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          (planted.y + 1) * RuntimeAssetLibrary.tileSize,
+          planted.x * tileSize + tileSize * 0.5,
+          (planted.y + 1) * tileSize,
           RuntimeAssetLibrary.worldKey,
           32
         )
@@ -957,8 +1024,8 @@ export class GameViewport {
       sprite
         .setVisible(true)
         .setPosition(
-          planted.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          (planted.y + 1) * RuntimeAssetLibrary.tileSize
+          planted.x * tileSize + tileSize * 0.5,
+          (planted.y + 1) * tileSize
         )
         .setFrame(this.resolveSaplingFrame(planted.growAt - snapshot.timeSeconds))
         .setTint(0xbfa57f);
@@ -971,7 +1038,7 @@ export class GameViewport {
     }
   }
 
-  private renderStructures(snapshot: RuntimeSessionState): void {
+  private renderStructures(snapshot: RuntimeSessionState, frustumBounds: FrustumBounds): void {
     const idCounts = new Map<string, number>();
     for (const structure of snapshot.placedStructures) {
       const count = idCounts.get(structure.id) || 0;
@@ -981,22 +1048,31 @@ export class GameViewport {
         console.warn(`[GameViewport] Duplicate structure ID detected: ${structure.id} at (${structure.x}, ${structure.y})`);
       }
     }
-    
+
     const visibleIds = new Set<string>();
+    const tileSize = RuntimeAssetLibrary.tileSize;
+
     for (const structure of snapshot.placedStructures) {
-      if (!this.isTileVisible(structure.x, structure.y, 3)) {
+      // Early frustum culling check - skip if not visible
+      const entityX = structure.x * tileSize + tileSize * 0.5;
+      const entityY = (structure.y + 1) * tileSize;
+      if (!this.frustumCuller.isVisible(entityX, entityY, frustumBounds)) {
+        // Hide if was previously visible
+        const sprite = this.structureSprites.get(structure.id);
+        if (sprite) sprite.setVisible(false);
         continue;
       }
+
       visibleIds.add(structure.id);
-      const worldY = (structure.y + 1) * RuntimeAssetLibrary.tileSize;
+      const worldY = (structure.y + 1) * tileSize;
       const structureDepth = calculateDepth(worldY, 0, "structure", {
         baseOffset: this.depthBaseOffset
       });
       let sprite = this.structureSprites.get(structure.id);
       if (!sprite) {
         sprite = this.scene.add.image(
-          structure.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          (structure.y + 1) * RuntimeAssetLibrary.tileSize,
+          structure.x * tileSize + tileSize * 0.5,
+          (structure.y + 1) * tileSize,
           RuntimeAssetLibrary.worldKey,
           0
         )
@@ -1022,8 +1098,8 @@ export class GameViewport {
       sprite
         .setVisible(true)
         .setPosition(
-          structure.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          (structure.y + 1) * RuntimeAssetLibrary.tileSize
+          structure.x * tileSize + tileSize * 0.5,
+          (structure.y + 1) * tileSize
         )
         .setFrame(frame)
         .setTint(tint);
@@ -1036,14 +1112,23 @@ export class GameViewport {
     }
   }
 
-  private renderDrops(snapshot: RuntimeSessionState): void {
+  private renderDrops(snapshot: RuntimeSessionState, frustumBounds: FrustumBounds): void {
     const visibleIds = new Set<string>();
+    const tileSize = RuntimeAssetLibrary.tileSize;
+
     for (const drop of snapshot.droppedItems ?? []) {
-      if (!this.isTileVisible(drop.x, drop.y, 4)) {
+      // Early frustum culling check - skip if not visible
+      const entityX = drop.x * tileSize + tileSize * 0.5;
+      const entityY = (drop.y + 1) * tileSize - 4;
+      if (!this.frustumCuller.isVisible(entityX, entityY, frustumBounds)) {
+        // Hide if was previously visible
+        const sprite = this.dropSprites.get(drop.id);
+        if (sprite) sprite.setVisible(false);
         continue;
       }
+
       visibleIds.add(drop.id);
-      const worldY = (drop.y + 1) * RuntimeAssetLibrary.tileSize;
+      const worldY = (drop.y + 1) * tileSize;
       const dropDepth = calculateDepth(worldY, 0, "drop", {
         baseOffset: this.depthBaseOffset
       });
@@ -1051,8 +1136,8 @@ export class GameViewport {
       if (!sprite) {
         const bob = Math.sin((snapshot.timeSeconds - drop.spawnedAt) * 4.2) * 2;
         sprite = this.scene.add.image(
-          drop.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          (drop.y + 1) * RuntimeAssetLibrary.tileSize - 4 + bob,
+          drop.x * tileSize + tileSize * 0.5,
+          (drop.y + 1) * tileSize - 4 + bob,
           RuntimeAssetLibrary.uiKey,
           0
         )
@@ -1064,8 +1149,8 @@ export class GameViewport {
       sprite
         .setVisible(true)
         .setPosition(
-          drop.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          (drop.y + 1) * RuntimeAssetLibrary.tileSize - 4 + bob
+          drop.x * tileSize + tileSize * 0.5,
+          (drop.y + 1) * tileSize - 4 + bob
         )
         .setFrame(RuntimeTheme.itemFrameFor(drop.itemId));
       this.dropSprites.set(drop.id, sprite);
@@ -1230,6 +1315,24 @@ export class GameViewport {
       worldX <= bounds.right + margin &&
       worldY >= bounds.top - margin &&
       worldY <= bounds.bottom + margin;
+  }
+
+  /**
+   * Calculate frustum bounds for culling.
+   * Used by both unified and legacy renderers.
+   */
+  private calculateFrustumBounds(): FrustumBounds {
+    const camera = this.scene.cameras.main;
+    const centerX = camera.worldView.x + camera.worldView.width / 2;
+    const centerY = camera.worldView.y + camera.worldView.height / 2;
+    const viewRadius = 20 * RuntimeAssetLibrary.tileSize; // 20 tiles radius
+
+    return {
+      left: centerX - viewRadius,
+      right: centerX + viewRadius,
+      top: centerY - viewRadius,
+      bottom: centerY + viewRadius
+    };
   }
 
   private createAnimations(): void {

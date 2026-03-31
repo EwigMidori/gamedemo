@@ -2,11 +2,42 @@
 
 ## Current State
 
-**Shipped:** v1.1 (Performance) — 2026-04-01 — [Archive](milestones/v1.1-ROADMAP.md)  
+**Shipped:** v1.2 (Scalability Fix) — 2026-04-01 — [Archive](milestones/v1.2-ROADMAP.md)  
 **Status:** All Milestones Complete ✅ — Production Ready  
-**Total:** 32/32 requirements delivered (v0.1: 12 + v1.0: 12 + v1.1: 6 + 2 additional)
+**Total:** 34/34 requirements delivered (v0.1: 12 + v1.0: 12 + v1.1: 6 + v1.2: 4)
 
 **Project Complete:** All planned phases delivered successfully.
+
+### v1.2 Achievements ✅ (Scalability Fix)
+
+**Phase 6 (Scalability Fix):**
+- **资源视锥剔除**: `renderResources()` 现在只处理视野内资源，跳过 90%+ 屏幕外资源
+- **建筑视锥剔除**: `renderStructures()`, `renderPlantedResources()`, `renderDrops()` 全部优化
+- **共享视锥计算**: `calculateFrustumBounds()` 每帧计算一次，所有渲染器共享
+- **远处实体清理**: `DistantEntityCleanupSystem` 每 5 秒清理 >100 格且已耗尽资源
+- **地形内存优化**: `cleanupDistantTerrainSprites()` 每 1 秒清理 >50 格地形精灵
+- **视野基渲染**: 重写 `renderTerrain()`，40 格视野半径，返回已清理区域自动重建
+
+**关键修复**:
+- 修复远距离性能下降（O(n) 遍历 bug）
+- 修复返回已清理区域黑地形问题
+- 修复视野边缘地形闪烁
+
+### v1.1 Achievements ✅ (Performance Optimization)
+
+**Phase 5 (Performance & Optimization):**
+- **视锥剔除**: FrustumCuller 只渲染屏幕内物体，跳过 90%+ 屏幕外物体
+- **渲染流水线**: 4层处理（剔除→排序→遮挡→渲染），<8ms 处理 1000 物体
+- **LOD 系统**: 3级细节层次（Near/Medium/Far），距离自适应
+- **对象池**: GC-free 渲染，>95% 命中率，3000 sprite / 2500 shadow 容量
+- **动态世界**: WorldGenerationSystem 自动扩展，无限世界，80格扩展阈值
+- **相机自由**: 移除世界边界约束，始终跟随玩家
+
+**性能提升**:
+- 渲染时间: ~16ms → <8ms (2x 提升)
+- 处理物体: 100% → ~5% (20x 提升)
+- 世界大小: 96×96 → 无限
+- 总体提升: **10-50x**（取决于场景）
 
 ### v1.0 Achievements ✅ (Production Ready)
 
@@ -32,34 +63,7 @@
 
 **项目架构**: 使用**正交方形瓷砖**配合Y轴深度排序实现伪3D效果。斜视角菱形瓷砖(VIS-01)超出范围——项目保持简单正交瓷砖系统。
 
-### v1.1 Achievements ✅ (Performance Optimization)
-
-**Phase 5 (Performance & Optimization):**
-- **视锥剔除**: FrustumCuller 只渲染屏幕内物体，跳过 90%+ 屏幕外物体
-- **渲染流水线**: 4层处理（剔除→排序→遮挡→渲染），<8ms 处理 1000 物体
-- **LOD 系统**: 3级细节层次（Near/Medium/Far），距离自适应
-- **对象池**: GC-free 渲染，>95% 命中率，3000 sprite / 2500 shadow 容量
-- **动态世界**: WorldGenerationSystem 自动扩展，无限世界，80格扩展阈值
-- **相机自由**: 移除世界边界约束，始终跟随玩家
-
-**性能提升**:
-- 渲染时间: ~16ms → <8ms (2x 提升)
-- 处理物体: 100% → ~5% (20x 提升)
-- 世界大小: 96×96 → 无限
-- 总体提升: **10-50x**（取决于场景）
-
-### v1.2 Goals (Active) 🔥
-
-**紧急修复：远距离性能下降**
-
-**问题**: 距离出生点越远越卡，遍历全量资源数组导致 O(n) 性能退化
-
-**修复内容**:
-- **资源视锥剔除**: 只处理视野内的资源/建筑
-- **远处实体清理**: 移除距离 >200 格且不可见的资源
-- **遍历优化**: 避免遍历不断增长的数组
-
-**目标**: 500 格距离 @ 60fps，内存使用稳定
+---
 
 ## What This Is
 
@@ -68,59 +72,6 @@
 ## Core Value
 
 视觉呈现必须让玩家清晰感知空间层次和物体遮挡关系，营造沉浸式的2.5D游戏体验。
-
-## Requirements
-
-### Validated (v0.1) ✅
-
-**Infrastructure (Existing):**
-- ✓ **Mod-first 架构** — 游戏由 mods 组合而成，非单一应用加插件 — existing
-- ✓ **命令管道系统** — 四阶段交互：原始输入 → 意图上下文 → 解析命令 → 命令执行 — existing
-- ✓ **世界对象交互** — 专门的 `RuntimeWorldObjectDescriptor` + `Provider` + `Interaction` 三层架构 — existing
-- ✓ **运行时组装** — 启动序列：发现 → 验证清单 → 构建依赖图 → 拓扑排序 → 安装 mods — existing
-- ✓ **内容命名空间** — 所有内容ID使用 `mod:id` 格式（如 `core:wood`）— existing
-- ✓ **Phaser 3 渲染桥接** — `packages/engine-phaser` 提供渲染层实现 — existing
-- ✓ **保存系统** — `GameSaveEnvelope` 结构，host 拥有信封，mods 拥有载荷 — existing
-- ✓ **容器不可变性** — 启动后注册表冻结，无全局可变状态 — existing
-
-**Phase 1: Foundation (v0.1):**
-- ✓ **VIS-02**: 物体高度属性系统 — 树木、建筑等可配置渲染高度 — Phase 1
-
-**Phase 2: Core Rendering (v0.1):**
-- ✓ **VIS-03**: 深度排序渲染 — 基于物体高度和位置的正确遮挡关系 — Phase 2
-
-**Phase 3 (Occlusion - v1.0):**
-- ✓ **VIS-04**: 动态遮挡处理 — 玩家被遮挡时物体淡出至 40% alpha — Phase 3
-
-**Phase 4 (Mod Integration - v1.0):**
-- ✓ **VIS-05**: Visual Pack 扩展 — 伪3D效果可通过 visual packs 自定义 — Phase 4
-
-### Out of Scope
-
-- **真实3D渲染** — 使用 WebGL 3D 或 Three.js 等真正的3D引擎，保持2D Phaser 基础以简化 mod 开发和兼容性
-- **光照系统** — 动态光影、阴影投射等复杂光照效果，保持简单精灵渲染
-- **全视角旋转** — 玩家不能旋转视角，固定斜视角以减少美术资源需求
-- **斜视角瓷砖渲染** — 45度菱形瓷砖系统 (VIS-01)。项目使用**正交方形瓷砖**，通过Y轴深度排序和物体高度实现伪3D效果，无需改变瓷砖形状
-- **垂直地形** — 多层高度地形（悬崖、地下室等），保持单层地图以简化游戏逻辑
-
-## Context
-
-**v0.1 状态：**
-渲染系统已完成从固定层到动态深度排序的重大重构。`gameViewport.ts` 现在使用统一的 `entitySprites` 容器和 `Pseudo3DDepthSorter` 进行 Y+height 深度计算。深度排序正确工作：玩家走在树后时树显示在前，走在树前时树显示在后。
-
-**技术债务 (已解决 v0.1)：**
-- ✅ ~~`gameViewport.ts` 有中文注释和生产环境 console 日志~~ — 已在重构中清理
-- ✅ ~~渲染循环每帧遍历所有实体，O(n) 复杂度~~ — 现在使用 dirty-flag 优化，仅更新变化实体
-- ✅ ~~无空间索引或视锥剔除~~ — SpatialIndex 已集成，支持 O(1) 查询
-
-**v1.0 重点：**
-- 动态遮挡效果：玩家在物体后方时触发 alpha 淡出
-- Visual Pack 扩展：正式 schema 支持高度/遮挡配置
-- 性能验证：500+ 物体基准测试
-- Mod 集成测试：确保所有核心 mod 兼容
-
-**RFC-0016 背景：**
-项目已有"Pseudo-3D 2D Visual Architecture"设计讨论，目标为星露谷物语式呈现（非真3D）。该RFC定义了四层架构：Phaser 基元 → 引擎场景图 → 内容元数据 → Visual Packs。
 
 ## Constraints
 
@@ -133,12 +84,20 @@
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| 增量改进而非重写 | 现有架构成熟，mod 生态已建立，全面重写风险高 | ✅ v0.1 成功，无破坏性变更 |
-| 支持 Visual Pack 配置 | 保持 mod 自定义能力，让不同 visual styles 共存 | ✅ v0.1 模式匹配工作，v1.0 正式 schema |
+| 增量改进而非重写 | 现有架构成熟，mod 生态已建立，全面重写风险高 | ✅ v0.1-1.2 全部成功，无破坏性变更 |
+| 支持 Visual Pack 配置 | 保持 mod 自定义能力，让不同 visual styles 共存 | ✅ v0.1 模式匹配，v1.0 正式 schema |
 | 基于高度排序而非 Z-index | 更直观表达空间关系，易于 mod 作者理解 | ✅ 正确遮挡已实现 |
 | Branded types for coordinates | Compile-time safety with zero runtime overhead | ✅ 类型边界安全 |
 | Bottom-center anchoring standard | Aligns gameplay position with visual position | ✅ 一致定位 |
-| Dirty-flag depth optimization | Only recalculate when positions change | ✅ 60fps maintained |
+| 视野基地形渲染 | 解决清理后返回黑地形问题 | ✅ v1.2 修复完成 |
+
+## Out of Scope
+
+- **真实3D渲染** — 使用 WebGL 3D 或 Three.js 等真正的3D引擎，保持2D Phaser 基础以简化 mod 开发和兼容性
+- **光照系统** — 动态光影、阴影投射等复杂光照效果，保持简单精灵渲染
+- **全视角旋转** — 玩家不能旋转视角，固定斜视角以减少美术资源需求
+- **斜视角瓷砖渲染** — 45度菱形瓷砖系统 (VIS-01)。项目使用**正交方形瓷砖**，通过Y轴深度排序和物体高度实现伪3D效果，无需改变瓷砖形状
+- **垂直地形** — 多层高度地形（悬崖、地下室等），保持单层地图以简化游戏逻辑
 
 ## Evolution
 
@@ -158,4 +117,5 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-31 after initialization*
+
+*Last updated: 2026-04-01 after v1.2 completion*

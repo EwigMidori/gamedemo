@@ -1,6 +1,7 @@
 import { MOD_API_VERSION } from "@gamedemo/engine-core";
 import type { GameModModule } from "@gamedemo/mod-api";
 import { VanillaWorldSeed } from "@gamedemo/vanilla-domain";
+import { DistantEntityCleanupSystem } from "./distantEntityCleanupSystem";
 import { ExpandingWorldSystem } from "./expandingWorldSystem";
 
 class CoreWorldgenInstaller {
@@ -8,6 +9,7 @@ class CoreWorldgenInstaller {
 
   install(context: Parameters<GameModModule["install"]>[0]): void {
     context.systems.register(ExpandingWorldSystem.create());
+    context.systems.register(DistantEntityCleanupSystem.create());
     context.worldgen.register({
       id: "core:prototype-noise-world",
       order: 10,
