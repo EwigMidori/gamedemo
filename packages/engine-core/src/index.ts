@@ -631,3 +631,20 @@ export {
   type FrustumBounds,
   type CullingResult,
 } from "./frustumCuller";
+
+// =============================================================================
+// Render Pipeline Exports
+// =============================================================================
+
+export {
+  LayeredRenderPipeline,
+  FrustumCullStage,
+  DepthSortStage,
+  OcclusionStage,
+  DEFAULT_PIPELINE_CONFIG,
+  type PipelineConfig,
+  type PipelineEntity,
+  type RenderContext,
+  type PipelineResult,
+  type RenderStage,
+} from "./renderPipeline";
