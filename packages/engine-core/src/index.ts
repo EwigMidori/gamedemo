@@ -665,3 +665,15 @@ export {
   type LODSettings,
   type LODSelection,
 } from "./lodManager";
+
+// =============================================================================
+// Object Pool Exports
+// =============================================================================
+
+export {
+  ObjectPool,
+  ObjectPoolGroup,
+  createObjectPool,
+  type PoolConfig,
+  type PoolStats,
+} from "./objectPool";
