@@ -43,9 +43,9 @@
 **Plans:** 3 plans in 2 waves
 
 **Plan List:**
-- [ ] `03-01-PLAN.md` — Occlusion Manager (OCC-01, OCC-02) — Wave 1
-- [ ] `03-02-PLAN.md` — Performance Optimization (PERF-01, PERF-02) — Wave 2
-- [ ] `03-03-PLAN.md` — Split-Layer Objects (OCC-04) — Wave 2
+- [x] `03-01-PLAN.md` — Occlusion Manager (OCC-01, OCC-02) — Wave 1
+- [x] `03-02-PLAN.md` — Performance Optimization (PERF-01, PERF-02) — Wave 2
+- [x] `03-03-PLAN.md` — Split-Layer Objects (OCC-04) — Wave 2
 
 **Wave Structure:**
 ```

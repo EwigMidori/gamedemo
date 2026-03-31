@@ -4,8 +4,7 @@ import type {
   RuntimePointerTile,
   RuntimeSessionState,
   StructureDef,
-  OccludableEntity,
-  OcclusionManager
+  OccludableEntity
 } from "@gamedemo/engine-core";
 import {
   ANCHOR_BOTTOM_CENTER,
@@ -16,7 +15,8 @@ import {
   worldX,
   worldY,
   classifyHeight,
-  shouldOccludePlayer
+  shouldOccludePlayer,
+  OcclusionManager
 } from "@gamedemo/engine-core";
 import type { EntityType } from "@gamedemo/engine-core";
 import { OcclusionAnimator } from "./occlusionAnimator";
@@ -96,7 +96,6 @@ export class GameViewport {
     this.performanceMonitor = performanceMonitor;
 
     // Initialize occlusion system
-    const { OcclusionManager } = require("@gamedemo/engine-core");
     this.occlusionManager = new OcclusionManager({
       checkInterval: this.occlusionCheckInterval,
       targetAlpha: 0.4,
