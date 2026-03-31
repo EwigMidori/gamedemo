@@ -16,7 +16,9 @@ import {
   worldY,
   classifyHeight,
   shouldOccludePlayer,
-  OcclusionManager
+  OcclusionManager,
+  FrustumCuller,
+  createFrustumBoundsFromCamera
 } from "@gamedemo/engine-core";
 import type { EntityType } from "@gamedemo/engine-core";
 import { OcclusionAnimator } from "./occlusionAnimator";
@@ -66,6 +68,9 @@ export class GameViewport {
   private readonly occlusionAnimator: OcclusionAnimator;
   private occlusionCheckInterval = 2; // Check every 2 frames
   private frameCount = 0;
+  
+  // Frustum culling for performance
+  private readonly frustumCuller = new FrustumCuller(0.1); // 10% margin
   
   // Entity sprite pool (reusable sprites)
   private readonly spritePool: Phaser.GameObjects.Image[] = [];
@@ -377,12 +382,18 @@ export class GameViewport {
   /**
    * Unified pseudo-3D entity rendering.
    * Uses depth sorter for correct occlusion.
+   * Integrates frustum culling for performance.
    */
   private renderEntitiesUnified(snapshot: RuntimeSessionState): void {
     const renderStart = performance.now();
     const visibleIds = new Set<string>();
 
-    // Process resources
+    // Get camera frustum for culling
+    const camera = this.scene.cameras.main;
+    const frustumBounds = createFrustumBoundsFromCamera(camera.worldView);
+    const tileSize = RuntimeAssetLibrary.tileSize;
+
+    // Process resources with frustum culling
     for (const resource of snapshot.resources) {
       if (resource.depleted) {
         // Hide depleted resources
@@ -396,7 +407,18 @@ export class GameViewport {
         continue;
       }
 
-      if (!this.isTileVisible(resource.x, resource.y, 3)) {
+      // Frustum culling: check if resource is visible
+      const entityX = resource.x * tileSize + tileSize * 0.5;
+      const entityY = (resource.y + 1) * tileSize;
+      if (!this.frustumCuller.isVisible(entityX, entityY, frustumBounds)) {
+        // Hide if was previously visible
+        const entity = this.entitySprites.get(resource.id);
+        if (entity) {
+          const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+          sprite?.setVisible(false);
+          const shadow = this.entityShadows.get(resource.id);
+          shadow?.sprite.setVisible(false);
+        }
         continue;
       }
 
@@ -421,9 +443,19 @@ export class GameViewport {
       }
     }
 
-    // Process planted resources
+    // Process planted resources with frustum culling
     for (const planted of snapshot.plantedResources ?? []) {
-      if (!this.isTileVisible(planted.x, planted.y, 3)) {
+      const entityX = planted.x * tileSize + tileSize * 0.5;
+      const entityY = (planted.y + 1) * tileSize;
+      if (!this.frustumCuller.isVisible(entityX, entityY, frustumBounds)) {
+        // Hide if was previously visible
+        const entity = this.entitySprites.get(planted.id);
+        if (entity) {
+          const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+          sprite?.setVisible(false);
+          const shadow = this.entityShadows.get(planted.id);
+          shadow?.sprite.setVisible(false);
+        }
         continue;
       }
 
@@ -445,9 +477,19 @@ export class GameViewport {
       }
     }
 
-    // Process structures
+    // Process structures with frustum culling
     for (const structure of snapshot.placedStructures) {
-      if (!this.isTileVisible(structure.x, structure.y, 3)) {
+      const entityX = structure.x * tileSize + tileSize * 0.5;
+      const entityY = (structure.y + 1) * tileSize;
+      if (!this.frustumCuller.isVisible(entityX, entityY, frustumBounds)) {
+        // Hide if was previously visible
+        const entity = this.entitySprites.get(structure.id);
+        if (entity) {
+          const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+          sprite?.setVisible(false);
+          const shadow = this.entityShadows.get(structure.id);
+          shadow?.sprite.setVisible(false);
+        }
         continue;
       }
 
@@ -477,9 +519,19 @@ export class GameViewport {
       }
     }
 
-    // Process drops
+    // Process drops with frustum culling
     for (const drop of snapshot.droppedItems ?? []) {
-      if (!this.isTileVisible(drop.x, drop.y, 4)) {
+      const entityX = drop.x * tileSize + tileSize * 0.5;
+      const entityY = (drop.y + 1) * tileSize;
+      if (!this.frustumCuller.isVisible(entityX, entityY, frustumBounds)) {
+        // Hide if was previously visible
+        const entity = this.entitySprites.get(drop.id);
+        if (entity) {
+          const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+          sprite?.setVisible(false);
+          const shadow = this.entityShadows.get(drop.id);
+          shadow?.sprite.setVisible(false);
+        }
         continue;
       }
 
