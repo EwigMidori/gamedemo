@@ -33,7 +33,7 @@
 **Plans:** 3 plans in 2 waves
 
 **Plan List:**
-- [ ] `01-01-PLAN.md` — Coordinate System Types (COORD-01, COORD-02) — Wave 1
+- [x] `01-01-PLAN.md` — Coordinate System Types (COORD-01, COORD-02) — Wave 1 ✅
 - [ ] `01-02-PLAN.md` — Height & Footprint Registry (HEIGHT-01, HEIGHT-02, FOOTPRINT-01) — Wave 1
 - [ ] `01-03-PLAN.md` — Spatial Index & Camera (SPATIAL-01, CAMERA-01) — Wave 2
 
@@ -105,7 +105,7 @@ Wave 2 (Depends on Wave 1):
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Planned | 01-01, 01-02, 01-03 |
+| 1. Foundation | 1/3 | In Progress | 01-01 |
 | 2. Core Rendering | 0/0 | Not started | - |
 | 3. Occlusion & Polish | 0/0 | Not started | - |
 | 4. Mod Integration | 0/0 | Not started | - |
@@ -132,7 +132,7 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 | Category | Requirements | Phase | Status |
 |----------|--------------|-------|--------|
-| Foundation | COORD-01, COORD-02, HEIGHT-01, HEIGHT-02, FOOTPRINT-01, SPATIAL-01, CAMERA-01 | Phase 1 | Pending |
+| Foundation | ~~COORD-01~~, ~~COORD-02~~, HEIGHT-01, HEIGHT-02, FOOTPRINT-01, SPATIAL-01, CAMERA-01 | Phase 1 | In Progress |
 | Core Rendering | DEPTH-01, DEPTH-02, DEPTH-03, DEPTH-04, DEPTH-05, SHADOW-01 | Phase 2 | Pending |
 | Occlusion & Polish | OCC-01, OCC-02, OCC-03, OCC-04, OCC-05, PERF-01, PERF-02 | Phase 3 | Pending |
 | Mod Integration | MOD-01, MOD-02, MOD-03, MOD-04, MOD-05 | Phase 4 | Pending |
