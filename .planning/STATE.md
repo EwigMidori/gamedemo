@@ -8,14 +8,14 @@
 
 ## Current Position
 
-**Phase:** 01-foundation  
-**Plan:** 01-01 — Coordinate System Types  
-**Status:** Complete (1/3 plans in Phase 1)  
+**Phase:** 01-foundation
+**Plan:** 01-02 — Height & Footprint Registry
+**Status:** Complete (2/3 plans in Phase 1)
 **Overall Progress:**
 
 ```
 [░░░░░░░░░░░░░░░░░░] 0% (0/4 phases)
-[███░░░░░░░░░░░░░░░] 33% (1/3 plans in Phase 1)
+[██████░░░░░░░░░░░░] 67% (2/3 plans in Phase 1)
 ```
 
 ---
@@ -57,11 +57,14 @@
 | Decision | Rationale | Status |
 |----------|-----------|--------|
 | Custom Y-sorting via Phaser depth | Avoid isometric plugins (deprecated/incomplete), don't need true 3D | Pending validation |
-| Height-based sorting vs Z-index | More intuitive for mod authors | Pending implementation |
+| Height-based sorting vs Z-index | More intuitive for mod authors | ✅ Implemented (HEIGHT-01, HEIGHT-02) |
 | Single-container pipeline | Replace fixed layers for proper occlusion | Pending Phase 2 |
 | Alpha 0.3-0.5 for occlusion | Not full transparency, maintains depth cue | Pending Phase 3 |
 | Branded types for coordinates | Compile-time safety with zero runtime overhead | ✅ Implemented |
 | Bottom-center anchoring standard | Aligns gameplay position with visual position | ✅ Implemented |
+| Height classification system | flat/low/medium/tall drives occlusion behavior | ✅ Implemented |
+| Footprint in tiles (not pixels) | Aligns with gameplay collision logic | ✅ Implemented |
+| Validation at mod load time | Catches errors early, clear error messages | ✅ Implemented |
 
 ### Known Technical Debt
 
@@ -94,8 +97,8 @@ No phases completed yet.
 
 ## Session Continuity
 
-**Last Action:** Completed Plan 01-01 Coordinate System Types (2026-03-31)  
-**Next Action:** Execute Plan 01-02 Height & Footprint Registry  
+**Last Action:** Completed Plan 01-02 Height & Footprint Registry (2026-03-31)  
+**Next Action:** Execute Plan 01-03 Spatial Index & Camera  
 **Blockers:** None  
 **Context Valid Until:** Milestone completion or major requirement change
 
@@ -109,12 +112,35 @@ If returning to this project:
 
 ### Completed Artifacts
 
+**Plan 01-01: Coordinate System Types**
 - `packages/engine-core/src/coordinates.ts` - Type-safe coordinate types
   - Branded types: TileCoord, WorldCoord, DepthValue
   - Anchor constants: ANCHOR_BOTTOM_CENTER = { x: 0.5, y: 1.0 }
   - CoordinateConverters namespace with 8 utilities
   - Type guards and utility functions
 - Requirements COORD-01, COORD-02 marked complete
+
+**Plan 01-02: Height & Footprint Registry**
+- `packages/mod-api/src/visualPack.ts` - Visual pack metadata types
+  - HeightClassification: flat/low/medium/tall with pixel ranges
+  - FootprintBounds: collision footprint in tiles
+  - VisualPackMetadata: complete visual configuration
+  - VisualPackRegistry interface
+  - DEFAULT_VISUAL_PACK fallback
+- `packages/engine-content/src/index.ts` - Extended ContentRegistryBuilder
+  - registerVisualPack() with validation
+  - getVisualPack(), hasVisualPack(), getAllVisualPacks()
+  - getVisualPacksByClassification()
+- `packages/engine-runtime/src/heightValidator.ts` - Validation system
+  - HeightValidationRules with 4 validation rules
+  - HeightValidator class for single/batch validation
+  - Clear error messages for debugging
+- `mods/core-base/src/index.ts` - Visual pack registrations
+  - core:tree (tall, 48px, can occlude)
+  - core:rock (low, 12px)
+  - core:berry_bush (medium, 20px, can occlude)
+  - core:player (low, 16px)
+- Requirements HEIGHT-01, HEIGHT-02, FOOTPRINT-01 marked complete
 
 ---
 
