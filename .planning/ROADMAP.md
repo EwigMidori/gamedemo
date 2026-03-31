@@ -65,11 +65,11 @@ Wave 2 (Depends on Wave 1):
 5. Basic shadows are rendered based on height classification (tall objects cast shadows, flat objects don't)
 6. Depth updates occur in renderPrepare phase without triggering per-frame full re-sort when positions haven't changed
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 **Plan List:**
-- [ ] `02-01-PLAN.md` — Depth Sorter Core (DEPTH-01, DEPTH-05) — Wave 1
-- [ ] `02-02-PLAN.md` — Shadow System (SHADOW-01) — Wave 1
+- [x] `02-01-PLAN.md` — Depth Sorter Core (DEPTH-01, DEPTH-05) — Wave 1 ✅
+- [x] `02-02-PLAN.md` — Shadow System (SHADOW-01) — Wave 1 ✅
 - [ ] `02-03-PLAN.md` — Rendering Pipeline Integration (DEPTH-02, DEPTH-03, DEPTH-04) — Wave 2
 
 **Wave Structure:**
@@ -123,7 +123,7 @@ Wave 2 (Depends on Wave 1):
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | **Complete** | 01-01, 01-02, 01-03 |
-| 2. Core Rendering | 1/3 | In Progress|  |
+| 2. Core Rendering | 2/3 | In Progress| 02-01, 02-02 |
 | 3. Occlusion & Polish | 0/0 | Not started | - |
 | 4. Mod Integration | 0/0 | Not started | - |
 
@@ -150,7 +150,7 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 | Category | Requirements | Phase | Status |
 |----------|--------------|-------|--------|
 | Foundation | ~~COORD-01~~, ~~COORD-02~~, ~~HEIGHT-01~~, ~~HEIGHT-02~~, ~~FOOTPRINT-01~~, ~~SPATIAL-01~~, ~~CAMERA-01~~ | Phase 1 | **Complete** |
-| Core Rendering | DEPTH-01, DEPTH-02, DEPTH-03, DEPTH-04, DEPTH-05, SHADOW-01 | Phase 2 | Pending |
+| Core Rendering | ~~DEPTH-01~~, DEPTH-02, DEPTH-03, DEPTH-04, ~~DEPTH-05~~, ~~SHADOW-01~~ | Phase 2 | In Progress |
 | Occlusion & Polish | OCC-01, OCC-02, OCC-03, OCC-04, OCC-05, PERF-01, PERF-02 | Phase 3 | Pending |
 | Mod Integration | MOD-01, MOD-02, MOD-03, MOD-04, MOD-05 | Phase 4 | Pending |
 
@@ -179,5 +179,5 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 *Roadmap created: 2026-03-31*  
 *Last updated: 2026-03-31*  
 *Phase 1 Foundation: COMPLETE*  
-*Phase 2 Core Rendering: PLANNED*  
+*Phase 2 Core Rendering: IN PROGRESS (2/3 plans)*  
 *Granularity: Coarse | Mode: YOLO*

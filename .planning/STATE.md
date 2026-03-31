@@ -9,14 +9,14 @@
 ## Current Position
 
 **Phase:** 02-core-rendering
-**Plan:** 02-02 — Shadow System
-**Status:** In Progress (1/3 plans in Phase 2)
+**Plan:** 02-01 — Depth Sorter Core
+**Status:** In Progress (2/3 plans in Phase 2)
 **Overall Progress:**
 
 ```
 [░░░░░░░░░░░░░░░░░░] 0% (0/4 phases)
 [██████████████████] 100% (3/3 plans in Phase 1)
-[██████░░░░░░░░░░░░] 33% (1/3 plans in Phase 2)
+[████████████░░░░░░] 67% (2/3 plans in Phase 2)
 ```
 
 ---
@@ -101,8 +101,8 @@ All 3 plans completed successfully:
 
 ### Phase 2: Core Rendering — IN PROGRESS
 
-1 of 3 plans complete:
-- ⏳ Plan 02-01: Depth Sorter Core (DEPTH-01, DEPTH-05) — Wave 1
+2 of 3 plans complete:
+- ✅ Plan 02-01: Depth Sorter Core (DEPTH-01, DEPTH-05) — Wave 1
 - ✅ Plan 02-02: Shadow System (SHADOW-01) — Wave 1
 - ⏳ Plan 02-03: Rendering Pipeline Integration (DEPTH-02, DEPTH-03, DEPTH-04) — Wave 2
 
@@ -110,8 +110,8 @@ All 3 plans completed successfully:
 
 ## Session Continuity
 
-**Last Action:** Completed Plan 02-02 Shadow System (2026-03-31)  
-**Next Action:** Continue Phase 2 Wave 1 — Plan 02-03 Rendering Pipeline Integration  
+**Last Action:** Completed Plan 02-01 Depth Sorter Core (2026-03-31)  
+**Next Action:** Continue Phase 2 — Plan 02-03 Rendering Pipeline Integration  
 **Blockers:** None  
 **Context Valid Until:** Phase 2 Wave 2 begins
 
@@ -172,6 +172,24 @@ If returning to this project:
   - SpatialIndex initialization
 - Requirements SPATIAL-01, CAMERA-01 marked complete
 
+**Plan 02-01: Depth Sorter Core**
+- `packages/engine-core/src/depthSorter.ts` - Pseudo-3D depth sorting system
+  - EntityType: "terrain" | "resource" | "planted" | "structure" | "drop" | "player"
+  - TYPE_PRIORITY: terrain(0) < resource/planted(1) < structure(2) < drop(3) < player(4)
+  - EntitySprite interface: id, type, x, y, renderHeight, needsDepthUpdate
+  - calculateDepth(): (y + renderHeight) * 1000 + typePriority formula
+  - calculateEntityDepth(): Updates entity and clears dirty flag
+  - calculateBatchDepths(): Efficient batch processing
+  - Pseudo3DDepthSorter class:
+    - register/unregister for entity lifecycle
+    - markDirty/markAllDirty for change tracking
+    - update() with dirty-flag optimization
+    - getSorted() with cached sorting
+    - Statistics tracking (updateCount, skipCount)
+- `packages/engine-core/src/index.ts` - Depth sorter exports
+  - Barrel export and explicit re-exports
+- Requirements DEPTH-01, DEPTH-05 marked complete
+
 **Plan 02-02: Shadow System**
 - `packages/engine-phaser/src/entityShadow.ts` - Height-based shadow rendering
   - EntityShadow interface with sprite, heightClassification, size, entityDepth
@@ -190,4 +208,4 @@ If returning to this project:
 *State tracking for: Gamedemo 伪3D视觉改进*  
 *Last updated: 2026-03-31*  
 *Phase 1 Foundation: COMPLETE*  
-*Phase 2 Core Rendering: IN PROGRESS (1/3 plans)*
+*Phase 2 Core Rendering: IN PROGRESS (2/3 plans)*
