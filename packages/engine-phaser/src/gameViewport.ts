@@ -5,11 +5,13 @@ import type {
   RuntimeSessionState,
   StructureDef
 } from "@gamedemo/engine-core";
+import { ANCHOR_BOTTOM_CENTER } from "@gamedemo/engine-core";
 import type { RuntimeSession } from "@gamedemo/engine-runtime";
 import { RuntimeAssetLibrary } from "./runtimeAssets";
 import { RuntimeContentIndex } from "./runtimeContentIndex";
 import { StructureAutotileResolver } from "./structureAutotileResolver";
 import { RuntimeTheme } from "./runtimeTheme";
+import { ObliqueCamera, createCameraBoundsFromWorld } from "./camera";
 
 interface GameViewportOptions {
   contentIndex: RuntimeContentIndex;
@@ -34,6 +36,7 @@ export class GameViewport {
   private readonly cursorHighlight: Phaser.GameObjects.Rectangle;
   private readonly moveTargetMarker: Phaser.GameObjects.Container;
   private readonly structureAutotile = new StructureAutotileResolver();
+  private readonly camera: ObliqueCamera;
   private lastFacingFrame = 0;
   private previousLogicalPosition: { x: number; y: number } | null = null;
   private renderedTerrainCount = 0;
@@ -43,10 +46,11 @@ export class GameViewport {
     private readonly session: RuntimeSession,
     private readonly options: GameViewportOptions
   ) {
+    this.camera = new ObliqueCamera(scene);
     this.playerShadow = this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4).setDepth(5);
     this.playerSprite = this.scene.add
       .sprite(0, 0, RuntimeAssetLibrary.pawnKey, 0)
-      .setOrigin(0.5, 0.75)
+      .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
       .setDepth(7)
       .setScale(1.15)
       .setTint(0xf6e7c8);
@@ -62,17 +66,18 @@ export class GameViewport {
   create(): void {
     const world = this.session.snapshot().world;
     this.createAnimations();
-    this.scene.cameras.main.setBackgroundColor(RuntimeTheme.background);
-    this.scene.cameras.main.setBounds(
-      world.originX * RuntimeAssetLibrary.tileSize,
-      world.originY * RuntimeAssetLibrary.tileSize,
-      world.width * RuntimeAssetLibrary.tileSize,
-      world.height * RuntimeAssetLibrary.tileSize
+
+    const bounds = createCameraBoundsFromWorld(
+      world.originX,
+      world.originY,
+      world.width,
+      world.height,
+      RuntimeAssetLibrary.tileSize
     );
-    this.scene.cameras.main.startFollow(this.playerSprite, true, 0.14, 0.14);
-    this.scene.cameras.main.setFollowOffset(10, 0);
-    this.scene.cameras.main.setZoom(2);
-    this.scene.cameras.main.roundPixels = true;
+    this.camera.setup(bounds);
+    this.camera.follow(this.playerSprite);
+    this.camera.setBackgroundColor(RuntimeTheme.background);
+
     this.renderTerrain();
     this.render();
   }
@@ -149,7 +154,9 @@ export class GameViewport {
       }
       visibleIds.add(resource.id);
       const sprite = this.resourceSprites.get(resource.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0).setDepth(2);
+        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0)
+          .setDepth(2)
+          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
       const resourceDef = this.options.contentIndex.resource(resource.resourceId);
       const frame = isRespawningTree
         ? this.resolveRespawningTreeFrame(resource.respawnAt ?? snapshot.timeSeconds, snapshot.timeSeconds)
@@ -179,7 +186,9 @@ export class GameViewport {
       }
       visibleIds.add(planted.id);
       const sprite = this.plantedSprites.get(planted.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 32).setDepth(2);
+        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 32)
+          .setDepth(2)
+          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
       sprite
         .setVisible(true)
         .setPosition(
@@ -198,6 +207,16 @@ export class GameViewport {
   }
 
   private renderStructures(snapshot: RuntimeSessionState): void {
+    const idCounts = new Map<string, number>();
+    for (const structure of snapshot.placedStructures) {
+      const count = idCounts.get(structure.id) || 0;
+      idCounts.set(structure.id, count + 1);
+
+      if (count > 0) {
+        console.warn(`[GameViewport] Duplicate structure ID detected: ${structure.id} at (${structure.x}, ${structure.y})`);
+      }
+    }
+    
     const visibleIds = new Set<string>();
     for (const structure of snapshot.placedStructures) {
       if (!this.isTileVisible(structure.x, structure.y, 3)) {
@@ -205,7 +224,9 @@ export class GameViewport {
       }
       visibleIds.add(structure.id);
       const sprite = this.structureSprites.get(structure.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0).setDepth(3);
+        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0)
+          .setDepth(3)
+          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
       const definition = this.options.contentIndex.structure(structure.structureId);
       const stage = definition?.growableStages?.length && structure.growth !== null && structure.growth !== undefined
         ? this.resolveGrowthStage(definition, structure.growth)
@@ -246,7 +267,9 @@ export class GameViewport {
       }
       visibleIds.add(drop.id);
       const sprite = this.dropSprites.get(drop.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.uiKey, 0).setDepth(4);
+        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.uiKey, 0)
+          .setDepth(4)
+          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
       const bob = Math.sin((snapshot.timeSeconds - drop.spawnedAt) * 4.2) * 2;
       sprite
         .setVisible(true)
@@ -267,7 +290,7 @@ export class GameViewport {
   private renderPlayer(snapshot: RuntimeSessionState): void {
     const position = this.resolveRenderedPlayerPosition(snapshot);
     const worldX = position.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
-    const worldY = position.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.82;
+    const worldY = position.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
     const frame = this.resolveFacingFrame(snapshot);
     this.playerShadow.setPosition(worldX, worldY + 2);
     this.playerSprite.setPosition(worldX, worldY);
