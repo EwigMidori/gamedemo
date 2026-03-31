@@ -6,6 +6,7 @@ import type {
   TerrainDef,
   ContentSnapshot
 } from "@gamedemo/engine-core";
+import type { VisualPackMetadata, HeightClassification } from "@gamedemo/mod-api";
 
 function assertUnique<T>(
   registry: Map<string, T>,
@@ -23,6 +24,7 @@ export class ContentRegistryBuilder {
   private readonly resources = new Map<string, ResourceDef>();
   private readonly structures = new Map<string, StructureDef>();
   private readonly terrains = new Map<string, TerrainDef>();
+  private readonly visualPacks = new Map<string, VisualPackMetadata>();
 
   registerItem(definition: ItemDef): void {
     assertUnique(this.items, definition.id, "item");
@@ -47,6 +49,35 @@ export class ContentRegistryBuilder {
   registerTerrain(definition: TerrainDef): void {
     assertUnique(this.terrains, definition.id, "terrain");
     this.terrains.set(definition.id, definition);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Visual Pack Registry
+  // ---------------------------------------------------------------------------
+
+  registerVisualPack(metadata: VisualPackMetadata): void {
+    if (this.visualPacks.has(metadata.contentId)) {
+      throw new Error(`Duplicate visual pack for content id: ${metadata.contentId}`);
+    }
+    this.visualPacks.set(metadata.contentId, metadata);
+  }
+
+  getVisualPack(contentId: string): VisualPackMetadata | undefined {
+    return this.visualPacks.get(contentId);
+  }
+
+  hasVisualPack(contentId: string): boolean {
+    return this.visualPacks.has(contentId);
+  }
+
+  getAllVisualPacks(): ReadonlyArray<VisualPackMetadata> {
+    return [...this.visualPacks.values()];
+  }
+
+  getVisualPacksByClassification(classification: HeightClassification): ReadonlyArray<VisualPackMetadata> {
+    return [...this.visualPacks.values()].filter(
+      vp => vp.heightClassification === classification
+    );
   }
 
   snapshot(): ContentSnapshot {
