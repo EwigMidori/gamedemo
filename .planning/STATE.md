@@ -8,14 +8,15 @@
 
 ## Current Position
 
-**Phase:** 01-foundation
-**Plan:** 01-03 — Spatial Index & Camera
-**Status:** Complete (3/3 plans in Phase 1)
+**Phase:** 02-core-rendering
+**Plan:** 02-02 — Shadow System
+**Status:** In Progress (1/3 plans in Phase 2)
 **Overall Progress:**
 
 ```
 [░░░░░░░░░░░░░░░░░░] 0% (0/4 phases)
 [██████████████████] 100% (3/3 plans in Phase 1)
+[██████░░░░░░░░░░░░] 33% (1/3 plans in Phase 2)
 ```
 
 ---
@@ -98,14 +99,21 @@ All 3 plans completed successfully:
 - ✅ Plan 01-02: Height & Footprint Registry (HEIGHT-01, HEIGHT-02, FOOTPRINT-01)
 - ✅ Plan 01-03: Spatial Index & Camera (SPATIAL-01, CAMERA-01)
 
+### Phase 2: Core Rendering — IN PROGRESS
+
+1 of 3 plans complete:
+- ⏳ Plan 02-01: Depth Sorter Core (DEPTH-01, DEPTH-05) — Wave 1
+- ✅ Plan 02-02: Shadow System (SHADOW-01) — Wave 1
+- ⏳ Plan 02-03: Rendering Pipeline Integration (DEPTH-02, DEPTH-03, DEPTH-04) — Wave 2
+
 ---
 
 ## Session Continuity
 
-**Last Action:** Completed Plan 01-03 Spatial Index & Camera (2026-03-31)  
-**Next Action:** Transition to Phase 2 - Core Rendering  
+**Last Action:** Completed Plan 02-02 Shadow System (2026-03-31)  
+**Next Action:** Continue Phase 2 Wave 1 — Plan 02-03 Rendering Pipeline Integration  
 **Blockers:** None  
-**Context Valid Until:** Phase 2 planning begins
+**Context Valid Until:** Phase 2 Wave 2 begins
 
 ### Quick Resume
 
@@ -164,8 +172,22 @@ If returning to this project:
   - SpatialIndex initialization
 - Requirements SPATIAL-01, CAMERA-01 marked complete
 
+**Plan 02-02: Shadow System**
+- `packages/engine-phaser/src/entityShadow.ts` - Height-based shadow rendering
+  - EntityShadow interface with sprite, heightClassification, size, entityDepth
+  - SHADOW_SIZES constant: flat=null, low=8x3, medium=12x5, tall=16x6
+  - SHADOW_DEFAULTS: color 0x000000, alpha 0.4, depthOffset -1
+  - createEntityShadow(): Factory returning null for flat objects
+  - updateShadowPosition(), updateShadowDepth(): Sync functions
+  - destroyEntityShadow(): Proper cleanup to prevent memory leaks
+  - Batch utilities: createBatchShadows, updateShadowsVisibility, destroyAllShadows, getShadowStats
+- `packages/engine-phaser/src/index.ts` - Shadow system exports
+  - All shadow types and functions exported from @gamedemo/engine-phaser
+- Requirement SHADOW-01 marked complete
+
 ---
 
 *State tracking for: Gamedemo 伪3D视觉改进*  
 *Last updated: 2026-03-31*  
-*Phase 1 Foundation: COMPLETE*
+*Phase 1 Foundation: COMPLETE*  
+*Phase 2 Core Rendering: IN PROGRESS (1/3 plans)*

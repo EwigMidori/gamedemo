@@ -26,7 +26,7 @@
 - [ ] **DEPTH-03**: Single-container rendering pipeline (replace fixed layers 0, 2, 3, 4, 7)
 - [ ] **DEPTH-04**: Integration with existing gameViewport.ts
 - [ ] **DEPTH-05**: Painter's algorithm implementation for correct occlusion
-- [ ] **SHADOW-01**: Basic shadows driven by height classification
+- [x] **SHADOW-01**: Basic shadows driven by height classification
 
 ### Occlusion & Polish (VIS-04)
 
@@ -89,7 +89,7 @@
 | DEPTH-03 | Phase 2: Core Rendering | Pending |
 | DEPTH-04 | Phase 2: Core Rendering | Pending |
 | DEPTH-05 | Phase 2: Core Rendering | Pending |
-| SHADOW-01 | Phase 2: Core Rendering | Pending |
+| SHADOW-01 | Phase 2: Core Rendering | Complete |
 | OCC-01 | Phase 3: Occlusion & Polish | Pending |
 | OCC-02 | Phase 3: Occlusion & Polish | Pending |
 | OCC-03 | Phase 3: Occlusion & Polish | Pending |

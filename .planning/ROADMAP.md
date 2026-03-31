@@ -65,7 +65,7 @@ Wave 2 (Depends on Wave 1):
 5. Basic shadows are rendered based on height classification (tall objects cast shadows, flat objects don't)
 6. Depth updates occur in renderPrepare phase without triggering per-frame full re-sort when positions haven't changed
 
-**Plans:** 3 plans in 2 waves
+**Plans:** 1/3 plans executed
 
 **Plan List:**
 - [ ] `02-01-PLAN.md` — Depth Sorter Core (DEPTH-01, DEPTH-05) — Wave 1
@@ -123,7 +123,7 @@ Wave 2 (Depends on Wave 1):
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | **Complete** | 01-01, 01-02, 01-03 |
-| 2. Core Rendering | 0/3 | **Planning Complete** | 02-01, 02-02, 02-03 |
+| 2. Core Rendering | 1/3 | In Progress|  |
 | 3. Occlusion & Polish | 0/0 | Not started | - |
 | 4. Mod Integration | 0/0 | Not started | - |
 
