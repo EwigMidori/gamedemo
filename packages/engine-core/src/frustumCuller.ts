@@ -152,15 +152,23 @@ export class FrustumCuller {
 
 /**
  * Create frustum bounds from camera world view (Phaser camera format)
+ * Properly handles camera zoom for correct visibility calculations.
  */
 export function createFrustumBoundsFromCamera(
-  worldView: { x: number; y: number; width: number; height: number }
+  worldView: { x: number; y: number; width: number; height: number },
+  zoom: number = 1
 ): FrustumBounds {
+  // Adjust bounds based on zoom level
+  // When zoom < 1 (zoomed out), we see more of the world
+  // When zoom > 1 (zoomed in), we see less
+  const adjustedWidth = worldView.width / zoom;
+  const adjustedHeight = worldView.height / zoom;
+  
   return {
     left: worldView.x,
-    right: worldView.x + worldView.width,
+    right: worldView.x + adjustedWidth,
     top: worldView.y,
-    bottom: worldView.y + worldView.height
+    bottom: worldView.y + adjustedHeight
   };
 }
 

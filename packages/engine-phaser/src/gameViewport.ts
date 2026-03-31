@@ -521,7 +521,7 @@ export class GameViewport {
 
     // Get camera frustum for culling
     const camera = this.scene.cameras.main;
-    const frustumBounds = createFrustumBoundsFromCamera(camera.worldView);
+    const frustumBounds = createFrustumBoundsFromCamera(camera.worldView, camera.zoom);
     const tileSize = RuntimeAssetLibrary.tileSize;
 
     // Process resources with frustum culling
