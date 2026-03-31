@@ -5,13 +5,29 @@ import type {
   RuntimeSessionState,
   StructureDef
 } from "@gamedemo/engine-core";
-import { ANCHOR_BOTTOM_CENTER } from "@gamedemo/engine-core";
+import {
+  ANCHOR_BOTTOM_CENTER,
+  Pseudo3DDepthSorter,
+  calculateDepth,
+  worldX,
+  worldY
+} from "@gamedemo/engine-core";
+import type { EntitySprite } from "@gamedemo/engine-core";
+import type { EntityType } from "@gamedemo/engine-core";
 import type { RuntimeSession } from "@gamedemo/engine-runtime";
 import { RuntimeAssetLibrary } from "./runtimeAssets";
 import { RuntimeContentIndex } from "./runtimeContentIndex";
 import { StructureAutotileResolver } from "./structureAutotileResolver";
 import { RuntimeTheme } from "./runtimeTheme";
 import { ObliqueCamera, createCameraBoundsFromWorld } from "./camera";
+import {
+  createEntityShadow,
+  updateShadowPosition,
+  updateShadowDepth,
+  destroyEntityShadow
+} from "./entityShadow";
+import type { EntityShadow } from "./entityShadow";
+import type { VisualPackMetadata } from "@gamedemo/mod-api";
 
 interface GameViewportOptions {
   contentIndex: RuntimeContentIndex;
@@ -25,11 +41,23 @@ interface GameViewportOptions {
 }
 
 export class GameViewport {
+  // Legacy Maps - maintained for backward compatibility during transition
+  // Will be deprecated once pseudo-3D rendering is fully validated
   private readonly terrainSprites = new Map<string, Phaser.GameObjects.Image>();
   private readonly resourceSprites = new Map<string, Phaser.GameObjects.Image>();
   private readonly structureSprites = new Map<string, Phaser.GameObjects.Image>();
   private readonly dropSprites = new Map<string, Phaser.GameObjects.Image>();
   private readonly plantedSprites = new Map<string, Phaser.GameObjects.Image>();
+  
+  // Unified entity management for pseudo-3D rendering
+  private readonly depthSorter = new Pseudo3DDepthSorter();
+  private readonly entitySprites = new Map<string, EntitySprite>();
+  private readonly entityShadows = new Map<string, EntityShadow>();
+  
+  // Entity sprite pool (reusable sprites)
+  private readonly spritePool: Phaser.GameObjects.Image[] = [];
+  private readonly maxPoolSize = 50;
+  
   private readonly pathMarkers: Phaser.GameObjects.Rectangle[] = [];
   private readonly playerShadow: Phaser.GameObjects.Ellipse;
   private readonly playerSprite: Phaser.GameObjects.Sprite;
@@ -63,6 +91,193 @@ export class GameViewport {
     this.moveTargetMarker = this.scene.add.container(0, 0, [ring, dot]).setDepth(9).setVisible(false);
   }
 
+  /**
+   * Get visual pack metadata for a content ID.
+   * Uses pattern-based fallback for now until VisualPackRegistry is available.
+   */
+  private getVisualPack(contentId: string): VisualPackMetadata {
+    // Pattern-based fallback defaults
+    if (contentId.includes("tree")) {
+      return {
+        contentId,
+        renderHeight: 48,
+        heightClassification: "tall",
+        footprint: { widthTiles: 1, depthTiles: 1 },
+        canOccludePlayer: true,
+        occlusionAlpha: 0.4
+      };
+    }
+    
+    if (contentId.includes("rock")) {
+      return {
+        contentId,
+        renderHeight: 12,
+        heightClassification: "low",
+        footprint: { widthTiles: 1, depthTiles: 1 }
+      };
+    }
+    
+    // Default fallback
+    return {
+      contentId,
+      renderHeight: 0,
+      heightClassification: "flat",
+      footprint: { widthTiles: 1, depthTiles: 1 }
+    };
+  }
+
+  /**
+   * Get a sprite from the pool or create new.
+   */
+  private acquireSprite(): Phaser.GameObjects.Image {
+    if (this.spritePool.length > 0) {
+      const sprite = this.spritePool.pop()!;
+      sprite.setVisible(true);
+      return sprite;
+    }
+    return this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0);
+  }
+
+  /**
+   * Return sprite to pool for reuse.
+   */
+  private releaseSprite(sprite: Phaser.GameObjects.Image): void {
+    if (this.spritePool.length < this.maxPoolSize) {
+      sprite.setVisible(false);
+      this.spritePool.push(sprite);
+    } else {
+      sprite.destroy();
+    }
+  }
+
+  /**
+   * Register a world entity for pseudo-3D rendering.
+   */
+  private registerEntity(
+    id: string,
+    type: EntityType,
+    x: number,
+    y: number,
+    contentId: string,
+    frame: number,
+    tint?: number
+  ): EntitySprite {
+    const visualPack = this.getVisualPack(contentId);
+    const entityX = x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
+    const entityY = y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
+
+    // Acquire or create sprite
+    const sprite = this.acquireSprite()
+      .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
+      .setPosition(entityX, entityY)
+      .setFrame(frame)
+      .setTint(tint ?? RuntimeTheme.objectTint);
+
+    // Calculate initial depth
+    const depth = calculateDepth(entityY, visualPack.renderHeight, type);
+    sprite.setDepth(depth);
+
+    // Create entity record
+    const entity: EntitySprite = {
+      id,
+      type,
+      x: worldX(entityX),
+      y: worldY(entityY),
+      sprite,
+      lastCalculatedDepth: depth,
+      needsDepthUpdate: false,
+      contentId,
+      renderHeight: visualPack.renderHeight
+    };
+
+    // Register with depth sorter
+    this.depthSorter.register(entity);
+    this.entitySprites.set(id, entity);
+
+    // Create shadow for non-flat objects
+    if (visualPack.heightClassification !== "flat") {
+      const shadow = createEntityShadow(
+        this.scene,
+        visualPack.heightClassification,
+        depth
+      );
+      if (shadow) {
+        updateShadowPosition(shadow, entityX, entityY);
+        this.entityShadows.set(id, shadow);
+      }
+    }
+
+    return entity;
+  }
+
+  /**
+   * Unregister and clean up an entity.
+   */
+  private unregisterEntity(id: string): void {
+    const entity = this.entitySprites.get(id);
+    if (!entity) {
+      return;
+    }
+
+    // Release sprite to pool
+    const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+    if (sprite) {
+      this.releaseSprite(sprite);
+    }
+
+    // Destroy shadow
+    const shadow = this.entityShadows.get(id);
+    destroyEntityShadow(shadow);
+    this.entityShadows.delete(id);
+
+    // Unregister from depth sorter
+    this.depthSorter.unregister(id);
+    this.entitySprites.delete(id);
+  }
+
+  /**
+   * Update entity position and depth.
+   */
+  private updateEntity(
+    id: string,
+    x: number,
+    y: number,
+    frame?: number,
+    tint?: number
+  ): void {
+    const entity = this.entitySprites.get(id);
+    if (!entity) {
+      return;
+    }
+
+    const entityX = x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
+    const entityY = y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
+
+    // Update position
+    entity.x = worldX(entityX);
+    entity.y = worldY(entityY);
+    const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+    sprite?.setPosition(entityX, entityY);
+
+    // Update frame/tint if provided
+    if (frame !== undefined) {
+      sprite?.setFrame(frame);
+    }
+    if (tint !== undefined) {
+      sprite?.setTint(tint);
+    }
+
+    // Mark for depth recalculation
+    entity.needsDepthUpdate = true;
+    this.depthSorter.markDirty(id);
+
+    // Update shadow position
+    const shadow = this.entityShadows.get(id);
+    if (shadow) {
+      updateShadowPosition(shadow, entityX, entityY);
+    }
+  }
+
   create(): void {
     const world = this.session.snapshot().world;
     this.createAnimations();
@@ -84,15 +299,182 @@ export class GameViewport {
 
   render(): void {
     const snapshot = this.session.snapshot();
+
+    // Legacy terrain rendering (terrain is static, doesn't need depth sorting)
     this.renderTerrain();
+
+    // Unified pseudo-3D rendering for dynamic entities
+    this.renderEntitiesUnified(snapshot);
+
+    // Legacy rendering (still active during transition)
+    // TODO: Remove once pseudo-3D rendering is validated
     this.renderResources(snapshot);
     this.renderPlantedResources(snapshot);
     this.renderStructures(snapshot);
     this.renderDrops(snapshot);
+
+    // UI overlays
     this.renderMovePath(snapshot);
     this.renderMoveTarget(snapshot);
     this.renderCursor();
     this.renderPlayer(snapshot);
+  }
+
+  /**
+   * Unified pseudo-3D entity rendering.
+   * Uses depth sorter for correct occlusion.
+   */
+  private renderEntitiesUnified(snapshot: RuntimeSessionState): void {
+    const visibleIds = new Set<string>();
+
+    // Process resources
+    for (const resource of snapshot.resources) {
+      if (resource.depleted) {
+        // Hide depleted resources
+        const entity = this.entitySprites.get(resource.id);
+        if (entity) {
+          const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+          sprite?.setVisible(false);
+          const shadow = this.entityShadows.get(resource.id);
+          shadow?.sprite.setVisible(false);
+        }
+        continue;
+      }
+
+      if (!this.isTileVisible(resource.x, resource.y, 3)) {
+        continue;
+      }
+
+      visibleIds.add(resource.id);
+
+      const resourceDef = this.options.contentIndex.resource(resource.resourceId);
+      const frame = resourceDef?.frame ?? RuntimeTheme.resourceFrame(resource.resourceId);
+
+      if (this.entitySprites.has(resource.id)) {
+        // Update existing entity
+        this.updateEntity(resource.id, resource.x, resource.y, frame);
+      } else {
+        // Register new entity
+        this.registerEntity(
+          resource.id,
+          "resource",
+          resource.x,
+          resource.y,
+          resource.resourceId,
+          frame
+        );
+      }
+    }
+
+    // Process planted resources
+    for (const planted of snapshot.plantedResources ?? []) {
+      if (!this.isTileVisible(planted.x, planted.y, 3)) {
+        continue;
+      }
+
+      visibleIds.add(planted.id);
+      const frame = this.resolveSaplingFrame(planted.growAt - snapshot.timeSeconds);
+
+      if (this.entitySprites.has(planted.id)) {
+        this.updateEntity(planted.id, planted.x, planted.y, frame, 0xbfa57f);
+      } else {
+        this.registerEntity(
+          planted.id,
+          "planted",
+          planted.x,
+          planted.y,
+          "resource:sapling",
+          frame,
+          0xbfa57f
+        );
+      }
+    }
+
+    // Process structures
+    for (const structure of snapshot.placedStructures) {
+      if (!this.isTileVisible(structure.x, structure.y, 3)) {
+        continue;
+      }
+
+      visibleIds.add(structure.id);
+
+      const definition = this.options.contentIndex.structure(structure.structureId);
+      const frame = this.structureAutotile.resolveFrame(
+        structure,
+        definition,
+        snapshot.placedStructures
+      )
+        ?? (structure.isOpen ? definition?.openFrame : null)
+        ?? definition?.frame
+        ?? RuntimeTheme.structureFrameFor(structure.structureId);
+
+      if (this.entitySprites.has(structure.id)) {
+        this.updateEntity(structure.id, structure.x, structure.y, frame);
+      } else {
+        this.registerEntity(
+          structure.id,
+          "structure",
+          structure.x,
+          structure.y,
+          structure.structureId,
+          frame
+        );
+      }
+    }
+
+    // Process drops
+    for (const drop of snapshot.droppedItems ?? []) {
+      if (!this.isTileVisible(drop.x, drop.y, 4)) {
+        continue;
+      }
+
+      visibleIds.add(drop.id);
+      const bob = Math.sin((snapshot.timeSeconds - drop.spawnedAt) * 4.2) * 2;
+      const frame = RuntimeTheme.itemFrameFor(drop.itemId);
+
+      if (this.entitySprites.has(drop.id)) {
+        this.updateEntity(drop.id, drop.x, drop.y, frame);
+        // Add bob offset to Y position
+        const entity = this.entitySprites.get(drop.id)!;
+        const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+        sprite?.setY(entity.y + bob - 4);
+      } else {
+        this.registerEntity(
+          drop.id,
+          "drop",
+          drop.x,
+          drop.y,
+          drop.itemId,
+          frame
+        );
+      }
+    }
+
+    // Update depths for all dirty entities
+    this.depthSorter.update();
+
+    // Apply calculated depths to sprites and shadows
+    for (const entity of this.depthSorter.getAll()) {
+      const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+      if (sprite) {
+        sprite.setDepth(entity.lastCalculatedDepth ?? 0);
+      }
+
+      const shadow = this.entityShadows.get(entity.id);
+      if (shadow && entity.lastCalculatedDepth !== undefined) {
+        updateShadowDepth(shadow, entity.lastCalculatedDepth);
+      }
+    }
+
+    // Hide entities that are no longer visible
+    for (const [id, entity] of this.entitySprites) {
+      if (!visibleIds.has(id)) {
+        const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+        sprite?.setVisible(false);
+        const shadow = this.entityShadows.get(id);
+        shadow?.sprite.setVisible(false);
+      }
+    }
   }
 
   getObjects(): Phaser.GameObjects.GameObject[] {
