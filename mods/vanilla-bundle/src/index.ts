@@ -1,5 +1,6 @@
 import { MOD_API_VERSION } from "@gamedemo/engine-core";
 import type { GameModModule } from "@gamedemo/mod-api";
+import { WorldGenerationSystem } from "@gamedemo/engine-runtime";
 
 export const vanillaBundleMod: GameModModule = {
   manifest: {
@@ -24,5 +25,8 @@ export const vanillaBundleMod: GameModModule = {
       title: "Vanilla Bundle",
       body: "Default profile composed from first-party core mods."
     });
+    
+    // Register dynamic world generation system
+    context.systems.register(WorldGenerationSystem);
   }
 };

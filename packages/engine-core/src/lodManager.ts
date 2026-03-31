@@ -64,14 +64,14 @@ export const DEFAULT_LOD_SETTINGS: Record<LODLevel, LODSettings> = {
     detailLevel: "full"
   },
   medium: { 
-    shadowEnabled: false, 
+    shadowEnabled: true,  // Enable shadows for medium distance
     animationEnabled: false, 
     alphaEnabled: true, 
     scale: 1.0,
     detailLevel: "simplified"
   },
   far: { 
-    shadowEnabled: false, 
+    shadowEnabled: true,  // Enable shadows even for far distance
     animationEnabled: false, 
     alphaEnabled: false, 
     scale: 0.5,

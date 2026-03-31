@@ -4,7 +4,8 @@ import type {
   RuntimePointerTile,
   RuntimeSessionState,
   StructureDef,
-  OccludableEntity
+  OccludableEntity,
+  FrustumBounds
 } from "@gamedemo/engine-core";
 import {
   ANCHOR_BOTTOM_CENTER,
@@ -18,7 +19,6 @@ import {
   shouldOccludePlayer,
   OcclusionManager,
   FrustumCuller,
-  createFrustumBoundsFromCamera,
   LayeredRenderPipeline,
   LODManager,
   ObjectPool,
@@ -88,6 +88,10 @@ export class GameViewport {
   // Chunk manager for large world streaming
   private readonly chunkManager: ChunkManager;
 
+  // Entity visibility tracking for cleanup
+  private entityOutOfViewFrames = new Map<string, number>();
+  private readonly OUT_OF_VIEW_THRESHOLD = 120; // ~2 seconds at 60fps
+
   private readonly pathMarkers: Phaser.GameObjects.Rectangle[] = [];
   private readonly playerShadow: Phaser.GameObjects.Ellipse;
   private readonly playerSprite: Phaser.GameObjects.Sprite;
@@ -140,12 +144,13 @@ export class GameViewport {
       transitionHysteresis: 20
     });
 
-    // Initialize object pools
+    // Initialize object pools for maximum view (zoom 0.5x)
+    // Max ~2500 objects (50x50) at max zoom, + buffer for smooth performance
     this.spritePool = new ObjectPool<Phaser.GameObjects.Image>({
-      initialSize: 100,
-      minSize: 50,
-      maxSize: 500,
-      factory: () => this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0),
+      initialSize: 400,
+      minSize: 200,
+      maxSize: 3000,
+      factory: () => this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0).setVisible(false),
       reset: (sprite) => {
         sprite.setVisible(false);
         sprite.setPosition(0, 0);
@@ -159,10 +164,10 @@ export class GameViewport {
     });
 
     this.shadowPool = new ObjectPool<Phaser.GameObjects.Ellipse>({
-      initialSize: 50,
-      minSize: 25,
-      maxSize: 200,
-      factory: () => this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4),
+      initialSize: 200,
+      minSize: 100,
+      maxSize: 2500,
+      factory: () => this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4).setVisible(false),
       reset: (shadow) => {
         shadow.setVisible(false);
         shadow.setPosition(0, 0);
@@ -279,7 +284,8 @@ export class GameViewport {
       .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
       .setPosition(entityX, entityY)
       .setFrame(frame)
-      .setTint(tint ?? RuntimeTheme.objectTint);
+      .setTint(tint ?? RuntimeTheme.objectTint)
+      .setVisible(true); // Ensure sprite is visible when registered
 
     // Calculate initial depth with dynamic base offset
     const depth = calculateDepth(entityY, visualPack.renderHeight, type, {
@@ -321,6 +327,7 @@ export class GameViewport {
       );
       if (shadow) {
         updateShadowPosition(shadow, entityX, entityY);
+        shadow.sprite.setVisible(true); // Ensure shadow is visible when created
         this.entityShadows.set(id, shadow);
       }
     }
@@ -343,10 +350,12 @@ export class GameViewport {
       this.releaseSprite(sprite);
     }
 
-    // Destroy shadow
+    // Release shadow to pool instead of destroying
     const shadow = this.entityShadows.get(id);
-    destroyEntityShadow(shadow);
-    this.entityShadows.delete(id);
+    if (shadow) {
+      this.releaseShadow(shadow.sprite);
+      this.entityShadows.delete(id);
+    }
 
     // Unregister from depth sorter
     this.depthSorter.unregister(id);
@@ -460,14 +469,9 @@ export class GameViewport {
     this.depthBaseOffset = calculateDepthBaseOffset(minWorldYPixels);
     this.depthSorter.setBaseOffset(this.depthBaseOffset);
 
-    const bounds = createCameraBoundsFromWorld(
-      world.originX,
-      world.originY,
-      world.width,
-      world.height,
-      RuntimeAssetLibrary.tileSize
-    );
-    this.camera.setup(bounds);
+    // Remove camera bounds to allow free movement
+    // Camera will always follow player without world boundary constraints
+    this.camera.setup();
     this.camera.follow(this.playerSprite);
     this.camera.setBackgroundColor(RuntimeTheme.background);
 
@@ -521,9 +525,19 @@ export class GameViewport {
     const renderStart = performance.now();
     const visibleIds = new Set<string>();
 
-    // Get camera frustum for culling
+    // Fixed 40x40 view radius for consistent shadow rendering regardless of zoom
+    // This ensures shadows are always rendered within a predictable range
     const camera = this.scene.cameras.main;
-    const frustumBounds = createFrustumBoundsFromCamera(camera.worldView, camera.zoom);
+    const centerX = camera.worldView.x + camera.worldView.width / 2;
+    const centerY = camera.worldView.y + camera.worldView.height / 2;
+    const viewRadius = 20 * RuntimeAssetLibrary.tileSize; // 20 tiles radius
+    
+    const frustumBounds: FrustumBounds = {
+      left: centerX - viewRadius,
+      right: centerX + viewRadius,
+      top: centerY - viewRadius,
+      bottom: centerY + viewRadius
+    };
     const tileSize = RuntimeAssetLibrary.tileSize;
 
     // Process resources with frustum culling
@@ -742,13 +756,26 @@ export class GameViewport {
       this.occlusionAnimator.updateOcclusionState(occlusionResult.occludedEntities, this.entitySprites);
     }
 
-    // Hide entities that are no longer visible
+    // Hide entities that are no longer visible and cleanup after threshold
     for (const [id, entity] of this.entitySprites) {
       if (!visibleIds.has(id)) {
         const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
         sprite?.setVisible(false);
         const shadow = this.entityShadows.get(id);
         shadow?.sprite.setVisible(false);
+        
+        // Track how long entity has been out of view
+        const frames = (this.entityOutOfViewFrames.get(id) ?? 0) + 1;
+        this.entityOutOfViewFrames.set(id, frames);
+        
+        // Unregister entity after threshold to return sprites to pool
+        if (frames > this.OUT_OF_VIEW_THRESHOLD) {
+          this.unregisterEntity(id);
+          this.entityOutOfViewFrames.delete(id);
+        }
+      } else {
+        // Entity is visible, reset counter
+        this.entityOutOfViewFrames.delete(id);
       }
     }
 
@@ -824,12 +851,8 @@ export class GameViewport {
 
   private renderTerrain(): void {
     const world = this.session.snapshot().world;
-    this.scene.cameras.main.setBounds(
-      world.originX * RuntimeAssetLibrary.tileSize,
-      world.originY * RuntimeAssetLibrary.tileSize,
-      world.width * RuntimeAssetLibrary.tileSize,
-      world.height * RuntimeAssetLibrary.tileSize
-    );
+    // Camera bounds removed to allow free movement
+    // this.scene.cameras.main.setBounds(...)
     if (world.tiles.length === this.renderedTerrainCount) {
       return;
     }

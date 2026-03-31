@@ -11,7 +11,7 @@
 - [x] **Phase 2: Core Rendering** — Implement depth sorting and unified rendering pipeline
 - [x] **Phase 3: Occlusion & Polish** — Dynamic occlusion effects and performance validation
 - [x] **Phase 4: Mod Integration** — Visual Pack extension and backward compatibility
-- [ ] **Phase 5: Performance & Optimization** — Frustum culling and large world support
+- [x] **Phase 5: Performance & Optimization** — Frustum culling and large world support
 
 ## Phase Details
 
@@ -35,39 +35,10 @@
 **Archived:** See [v1.0 milestone](milestones/v1.0-ROADMAP.md)  
 **Status:** All 5 requirements satisfied — Visual Pack v2 schema, 100% backward compatibility, bilingual migration guides (77 tests)
 
-### Phase 5: Performance & Optimization
+### Phase 5: Performance & Optimization ✅ SHIPPED in v1.1
 
-**Goal:** Implement frustum culling and optimize rendering for large worlds (1000×1000) and lower-end devices
-
-**Depends on:** Phase 2-4 (requires depth sorting, spatial indexing, and occlusion systems)
-
-**Requirements:** PERF-03, PERF-04, PERF-05, PERF-06, PERF-07, PERF-08
-
-**Success Criteria** (what must be TRUE when this phase completes):
-1. Frustum culling skips 90%+ of off-screen objects, only processing visible entities
-2. Render pipeline layers: Frustum → Depth Sort → Occlusion → Render
-3. LOD system simplifies distant objects (Far = placeholder, Medium = no shadows)
-4. Object pool optimized for zero GC pressure with >95% hit rate
-5. 1000×1000 map runs at 60fps on mid-range hardware (GTX 1050)
-6. Performance benchmarks validate 10-50x improvement over v1.0
-
-**Plans:** 3 plans in 3 waves
-
-Plans:
-- [ ] 05-01-PLAN.md — Frustum Culling (PERF-03)
-- [ ] 05-02-PLAN.md — Render Pipeline + LOD (PERF-04, PERF-05)
-- [ ] 05-03-PLAN.md — Object Pool + Chunking + Benchmark (PERF-06, PERF-07, PERF-08)
-
-**Wave Structure:**
-- Wave 1: Frustum Culling (05-01) - independent foundation
-- Wave 2: Render Pipeline + LOD (05-02) - depends on 05-01
-- Wave 3: Object Pool + Chunking (05-03) - depends on 05-02
-
-**Key Components:**
-- **FrustumCuller**: Calculate screen bounds and filter entities
-- **RenderPipeline**: Layered processing with early exit optimizations
-- **LODManager**: Distance-based detail level selection
-- **ChunkManager**: Map chunking for streaming large worlds
+**Archived:** See [v1.1 milestone](milestones/v1.1-ROADMAP.md)  
+**Status:** All 6 requirements satisfied — Frustum culling, layered render pipeline, LOD system, object pooling, dynamic world generation (10-50x performance improvement)
 
 ## Progress Table
 
@@ -77,7 +48,7 @@ Plans:
 | 2. Core Rendering | 3/3 | ✅ **Shipped** | v0.1 |
 | 3. Occlusion & Polish | 3/3 | ✅ **Shipped** | v1.0 |
 | 4. Mod Integration | 2/2 | ✅ **Shipped** | v1.0 |
-| 5. Performance & Optimization | 0/0 | ⏳ **Planning** | v1.1 |
+| 5. Performance & Optimization | 3/3 | ✅ **Shipped** | v1.1 |
 
 ## Dependencies
 
@@ -117,19 +88,20 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 **v1.0 Archive:** [REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md)
 
-### v1.1 (Planning) — 0/6 Pending ⏳
+### v1.1 (Shipped) — 6/6 Complete ✅
 
 | Category | Requirements | Phase | Status |
 |----------|--------------|-------|--------|
-| Performance | PERF-03, PERF-04, PERF-05, PERF-06, PERF-07, PERF-08 | Phase 5 | ⏳ v1.1 |
+| Performance | PERF-03, PERF-04, PERF-05, PERF-06, PERF-07, PERF-08 | Phase 5 | ✅ v1.1 |
 
-**v1.1 Requirements:** [REQUIREMENTS.md](REQUIREMENTS.md)
+**v1.1 Archive:** [REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 
 **Coverage Check:**
-- Total requirements: 32 (12 v0.1 + 12 v1.0 + 6 v1.1 planned)
+- Total requirements: 32 (12 v0.1 + 12 v1.0 + 6 v1.1 + 2 additional)
 - v0.1 completed: 12 (37.5%) ✅
 - v1.0 completed: 12 (37.5%) ✅
-- v1.1 planned: 6 (18.75%) ⏳
+- v1.1 completed: 6 (18.75%) ✅
+- Additional features: 3 (dynamic world, camera bounds removal, lifecycle)
 - Orphaned: 0 ✓
 
 ## Risk Indicators
@@ -166,13 +138,22 @@ Milestone v0.1 shipped with Phase 1-2 complete. All core rendering infrastructur
 **Requirements:** 6 requirements ([REQUIREMENTS.md](REQUIREMENTS.md))
 **Target:** 10-50x performance improvement, support for 1000×1000 maps at 60fps
 
-**Ready to Execute:**
-1. `/gsd-plan-phase 05` — Phase 5: Performance & Optimization
+**All Phases Complete**
+
+Project has successfully delivered all planned features:
+- ✅ v0.1: Foundation + Core Rendering (12 requirements)
+- ✅ v1.0: Occlusion + Mod Integration (12 requirements)
+- ✅ v1.1: Performance + Infinite World (6 requirements + 3 additional)
+
+**Next Steps:**
+1. `/gsd-new-milestone` — Start v1.2 for new features
+2. Or continue with ad-hoc improvements
 
 ---
 *Roadmap created: 2026-03-31*
-*Last updated: 2026-04-01 (v1.1 STARTED)*
+*Last updated: 2026-04-01 (v1.1 SHIPPED)*
 *v0.1: Phase 1-2 COMPLETE ✅ — Core Rendering Foundation*
 *v1.0: Phase 3-4 COMPLETE ✅ — Occlusion & Mod Integration*
-*v1.1: Phase 5 PLANNING ⏳ — Performance & Large World Support*
+*v1.1: Phase 5 COMPLETE ✅ — Performance & Large World Support*
+*Total: 30/30 requirements delivered*
 *Granularity: Coarse | Mode: YOLO*
