@@ -135,3 +135,13 @@ export {
   validateVisualPack,
   createVisualPackV2
 } from "./visualPackV2";
+
+/**
+ * Get the visual pack version (1 or 2) from an unknown pack.
+ * 
+ * @param pack - Unknown pack data
+ * @returns 2 if v2 pack, 1 otherwise
+ */
+export function getVisualPackVersion(pack: unknown): 1 | 2 {
+  return isVisualPackV2(pack) ? 2 : 1;
+}
