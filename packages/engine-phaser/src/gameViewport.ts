@@ -21,6 +21,8 @@ import {
   createFrustumBoundsFromCamera,
   LayeredRenderPipeline,
   LODManager,
+  ObjectPool,
+  ChunkManager,
   type LODLevel
 } from "@gamedemo/engine-core";
 import type { EntityType } from "@gamedemo/engine-core";
@@ -79,10 +81,13 @@ export class GameViewport {
   private readonly renderPipeline: LayeredRenderPipeline;
   private readonly lodManager: LODManager;
 
-  // Entity sprite pool (reusable sprites)
-  private readonly spritePool: Phaser.GameObjects.Image[] = [];
-  private readonly maxPoolSize = 50;
-  
+  // Object pools for efficient memory management
+  private readonly spritePool: ObjectPool<Phaser.GameObjects.Image>;
+  private readonly shadowPool: ObjectPool<Phaser.GameObjects.Ellipse>;
+
+  // Chunk manager for large world streaming
+  private readonly chunkManager: ChunkManager;
+
   private readonly pathMarkers: Phaser.GameObjects.Rectangle[] = [];
   private readonly playerShadow: Phaser.GameObjects.Ellipse;
   private readonly playerSprite: Phaser.GameObjects.Sprite;
@@ -133,6 +138,43 @@ export class GameViewport {
       nearThreshold: 200,
       mediumThreshold: 500,
       transitionHysteresis: 20
+    });
+
+    // Initialize object pools
+    this.spritePool = new ObjectPool<Phaser.GameObjects.Image>({
+      initialSize: 100,
+      minSize: 50,
+      maxSize: 500,
+      factory: () => this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0),
+      reset: (sprite) => {
+        sprite.setVisible(false);
+        sprite.setPosition(0, 0);
+        sprite.clearTint();
+        sprite.setAlpha(1);
+        sprite.setScale(1);
+      },
+      onExpand: (newSize) => {
+        console.log(`[ObjectPool] Sprite pool expanded to ${newSize}`);
+      }
+    });
+
+    this.shadowPool = new ObjectPool<Phaser.GameObjects.Ellipse>({
+      initialSize: 50,
+      minSize: 25,
+      maxSize: 200,
+      factory: () => this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4),
+      reset: (shadow) => {
+        shadow.setVisible(false);
+        shadow.setPosition(0, 0);
+        shadow.setAlpha(0.4);
+      }
+    });
+
+    // Initialize chunk manager
+    this.chunkManager = new ChunkManager({
+      chunkSize: 64,
+      loadRadius: 2,
+      unloadDistance: 8
     });
 
     // Initial depth values will be overridden in renderPlayer based on world bounds
@@ -189,24 +231,28 @@ export class GameViewport {
    * Get a sprite from the pool or create new.
    */
   private acquireSprite(): Phaser.GameObjects.Image {
-    if (this.spritePool.length > 0) {
-      const sprite = this.spritePool.pop()!;
-      sprite.setVisible(true);
-      return sprite;
-    }
-    return this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0);
+    return this.spritePool.acquire();
   }
 
   /**
    * Return sprite to pool for reuse.
    */
   private releaseSprite(sprite: Phaser.GameObjects.Image): void {
-    if (this.spritePool.length < this.maxPoolSize) {
-      sprite.setVisible(false);
-      this.spritePool.push(sprite);
-    } else {
-      sprite.destroy();
-    }
+    this.spritePool.release(sprite);
+  }
+
+  /**
+   * Acquire a shadow from the pool.
+   */
+  private acquireShadow(): Phaser.GameObjects.Ellipse {
+    return this.shadowPool.acquire();
+  }
+
+  /**
+   * Release a shadow back to the pool.
+   */
+  private releaseShadow(shadow: Phaser.GameObjects.Ellipse): void {
+    this.shadowPool.release(shadow);
   }
 
   /**
@@ -429,6 +475,20 @@ export class GameViewport {
 
   render(): void {
     const snapshot = this.session.snapshot();
+
+    // Update chunk loading based on player position
+    const playerTileX = snapshot.player.x;
+    const playerTileY = snapshot.player.y;
+    const chunkResult = this.chunkManager.update(playerTileX, playerTileY);
+
+    // Log chunk activity periodically (every 60 frames)
+    if (this.frameCount % 60 === 0 && (chunkResult.loaded.length > 0 || chunkResult.unloaded.length > 0)) {
+      console.log('[ChunkManager]', {
+        loaded: chunkResult.loaded.length,
+        unloaded: chunkResult.unloaded.length,
+        loadedChunks: this.chunkManager.getStats().loadedCount
+      });
+    }
 
     // Legacy terrain rendering (terrain is static, doesn't need depth sorting)
     this.renderTerrain();
@@ -716,7 +776,10 @@ export class GameViewport {
   getPerformanceMetrics() {
     const base = this.performanceMonitor?.getCurrentMetrics() ?? null;
     const pipelineResult = this.renderPipeline.getLastResult();
-    
+    const spriteStats = this.spritePool.getStats();
+    const shadowStats = this.shadowPool.getStats();
+    const chunkStats = this.chunkManager.getStats();
+
     return {
       ...base,
       pipeline: pipelineResult ? {
@@ -724,7 +787,29 @@ export class GameViewport {
         stageTimings: Object.fromEntries(pipelineResult.stageTimings),
         entitiesAtEachStage: Object.fromEntries(pipelineResult.entitiesAtEachStage)
       } : null,
-      lod: this.lodManager.getStats()
+      lod: this.lodManager.getStats(),
+      pools: {
+        sprites: {
+          hitRate: Math.round(spriteStats.hitRate * 100) / 100,
+          inUse: spriteStats.inUse,
+          available: spriteStats.available,
+          total: spriteStats.totalAllocated,
+          expansions: spriteStats.expansionCount
+        },
+        shadows: {
+          hitRate: Math.round(shadowStats.hitRate * 100) / 100,
+          inUse: shadowStats.inUse,
+          available: shadowStats.available,
+          total: shadowStats.totalAllocated,
+          expansions: shadowStats.expansionCount
+        }
+      },
+      chunks: {
+        loaded: chunkStats.loadedCount,
+        loading: chunkStats.loadingCount,
+        queue: chunkStats.queueLength,
+        memoryMB: Math.round(chunkStats.totalMemoryEstimate / 1024 / 1024 * 100) / 100
+      }
     };
   }
 
