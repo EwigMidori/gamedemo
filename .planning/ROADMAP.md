@@ -51,7 +51,17 @@
 5. 1000×1000 map runs at 60fps on mid-range hardware (GTX 1050)
 6. Performance benchmarks validate 10-50x improvement over v1.0
 
-**Plans:** TBD (~3-4 plans expected)
+**Plans:** 3 plans in 3 waves
+
+Plans:
+- [ ] 05-01-PLAN.md — Frustum Culling (PERF-03)
+- [ ] 05-02-PLAN.md — Render Pipeline + LOD (PERF-04, PERF-05)
+- [ ] 05-03-PLAN.md — Object Pool + Chunking + Benchmark (PERF-06, PERF-07, PERF-08)
+
+**Wave Structure:**
+- Wave 1: Frustum Culling (05-01) - independent foundation
+- Wave 2: Render Pipeline + LOD (05-02) - depends on 05-01
+- Wave 3: Object Pool + Chunking (05-03) - depends on 05-02
 
 **Key Components:**
 - **FrustumCuller**: Calculate screen bounds and filter entities
