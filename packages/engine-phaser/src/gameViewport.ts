@@ -140,11 +140,11 @@ export class GameViewport {
       transitionHysteresis: 20
     });
 
-    // Initialize object pools
+    // Initialize object pools (expanded for 80x80 view radius)
     this.spritePool = new ObjectPool<Phaser.GameObjects.Image>({
-      initialSize: 100,
-      minSize: 50,
-      maxSize: 500,
+      initialSize: 200,
+      minSize: 100,
+      maxSize: 1000,
       factory: () => this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0),
       reset: (sprite) => {
         sprite.setVisible(false);
@@ -159,9 +159,9 @@ export class GameViewport {
     });
 
     this.shadowPool = new ObjectPool<Phaser.GameObjects.Ellipse>({
-      initialSize: 50,
-      minSize: 25,
-      maxSize: 200,
+      initialSize: 100,
+      minSize: 50,
+      maxSize: 500,
       factory: () => this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4),
       reset: (shadow) => {
         shadow.setVisible(false);
