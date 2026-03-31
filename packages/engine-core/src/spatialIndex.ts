@@ -2,6 +2,7 @@
 // Uses uniform grid (spatial hash) for O(1) insertion and fast range queries
 
 import type { WorldX, WorldY } from "./coordinates";
+import type { FrustumBounds } from "./frustumCuller";
 
 /**
  * Object stored in the spatial index
@@ -164,6 +165,33 @@ export class SpatialIndex {
       maxX: x,
       maxY: y
     });
+  }
+
+  /**
+   * Query using FrustumBounds (optimized for camera culling)
+   * Converts FrustumBounds to SpatialQueryBounds internally
+   */
+  queryByBounds(bounds: FrustumBounds): SpatialQueryResult {
+    return this.query({
+      minX: bounds.left,
+      minY: bounds.top,
+      maxX: bounds.right,
+      maxY: bounds.bottom
+    });
+  }
+
+  /**
+   * Insert multiple objects efficiently
+   * Useful for initial world loading
+   * @returns Number of objects successfully inserted
+   */
+  insertBatch(objects: SpatialObject[]): number {
+    let inserted = 0;
+    for (const obj of objects) {
+      this.insert(obj);
+      inserted++;
+    }
+    return inserted;
   }
 
   /**
