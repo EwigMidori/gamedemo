@@ -40,7 +40,22 @@
 5. Game maintains consistent 60fps when 500+ objects are visible on screen (measured via performance benchmarks)
 6. Performance benchmarks exist and validate that rendering time stays under 16ms per frame
 
-**Plans:** TBD
+**Plans:** 3 plans in 2 waves
+
+**Plan List:**
+- [ ] `03-01-PLAN.md` — Occlusion Manager (OCC-01, OCC-02) — Wave 1
+- [ ] `03-02-PLAN.md` — Performance Optimization (PERF-01, PERF-02) — Wave 2
+- [ ] `03-03-PLAN.md` — Split-Layer Objects (OCC-04) — Wave 2
+
+**Wave Structure:**
+```
+Wave 1 (Foundation):
+  └─ Plan 03-01: Occlusion detection and alpha fade effects
+
+Wave 2 (Advanced Features):
+  ├─ Plan 03-02: Performance benchmarking and optimization
+  └─ Plan 03-03: Multi-layer object rendering
+```
 
 ### Phase 4: Mod Integration
 
@@ -58,7 +73,20 @@
 5. All core mods (core:base, core:worldgen, core:player, core:inventory, core:survival, core:gathering, core:building, core:crafting, core:ui-hud) work without modification in both legacy and pseudo-3D rendering modes
 6. Test suite validates that existing saves load correctly and render with new system
 
-**Plans:** TBD
+**Plans:** 2 plans in 2 waves
+
+**Plan List:**
+- [ ] `04-01-PLAN.md` — Visual Pack Schema v2 (MOD-01, MOD-02, MOD-03) — Wave 1
+- [ ] `04-02-PLAN.md` — Core Mod Testing & Migration (MOD-04, MOD-05) — Wave 2
+
+**Wave Structure:**
+```
+Wave 1 (Schema & Compatibility):
+  └─ Plan 04-01: Visual Pack v2 schema and backward compatibility layer
+
+Wave 2 (Testing & Documentation):
+  └─ Plan 04-02: Test suite and migration guide for mod authors
+```
 
 ## Progress Table
 
@@ -89,14 +117,23 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 ## Coverage Summary
 
-### v0.1 (Shipped) — 13/13 Complete ✅
+### v0.1 (Shipped) — 12/12 Complete ✅
 
 | Category | Requirements | Phase | Status |
 |----------|--------------|-------|--------|
-| Foundation | ~~COORD-01~~, ~~COORD-02~~, ~~HEIGHT-01~~, ~~HEIGHT-02~~, ~~FOOTPRINT-01~~, ~~SPATIAL-01~~, ~~CAMERA-01~~ | Phase 1 | ✅ v0.1 |
+| Foundation | ~~COORD-01~~, ~~COORD-02~~, ~~HEIGHT-01~~, ~~HEIGHT-02~~, ~~FOOTPRINT-01~~, ~~SPATIAL-01~~ | Phase 1 | ✅ v0.1 |
 | Core Rendering | ~~DEPTH-01~~, ~~DEPTH-02~~, ~~DEPTH-03~~, ~~DEPTH-04~~, ~~DEPTH-05~~, ~~SHADOW-01~~ | Phase 2 | ✅ v0.1 |
 
 **v0.1 Archive:** [REQUIREMENTS.md](milestones/v0.1-REQUIREMENTS.md)
+
+### v1.0 (Planned) — 12/12 Pending ⏳
+
+| Category | Requirements | Phase | Status |
+|----------|--------------|-------|--------|
+| Occlusion | OCC-01, OCC-02, OCC-03, OCC-04, OCC-05, PERF-01, PERF-02 | Phase 3 | ⏳ v1.0 |
+| Mod Integration | MOD-01, MOD-02, MOD-03, MOD-04, MOD-05 | Phase 4 | ⏳ v1.0 |
+
+**v1.0 Requirements:** [REQUIREMENTS.md](REQUIREMENTS.md)
 
 ### v1.0 (Pending) — 12/12 Remaining
 
@@ -126,19 +163,21 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 Milestone v0.1 shipped with Phase 1-2 complete. All core rendering infrastructure in place.
 
-### v1.0 Planning
+### v1.0 In Progress ⏳
 
-1. **Start next milestone** — Run `/gsd-new-milestone` to begin Phase 3-4
-2. **Phase 3: Occlusion & Polish** — Dynamic alpha fade, performance benchmarks
-3. **Phase 4: Mod Integration** — Visual Pack schema, backward compatibility
+**Milestone v1.0 started:** 2026-04-01  
+**Goal:** Production-ready pseudo-3D with dynamic occlusion and full mod support  
+**Requirements:** 12 requirements ([REQUIREMENTS.md](REQUIREMENTS.md))  
+**Plans:** 5 plans across Phase 3-4  
 
-**Estimated:** Phase 3 (~3-4 plans), Phase 4 (~2-3 plans)
-
-**Target:** Production-ready pseudo-3D with full mod support
+**Ready to Execute:**
+1. `/gsd-plan-phase 03` — Phase 3: Occlusion & Polish
+2. `/gsd-plan-phase 04` — Phase 4: Mod Integration (can run parallel with Phase 3)
 
 ---
 *Roadmap created: 2026-03-31*
-*Last updated: 2026-04-01 (v0.1 shipped)*
-*v0.1: Phase 1-2 COMPLETE — Core Rendering Foundation*
-*v1.0: Phase 3-4 PENDING — Occlusion & Mod Integration*
+*Last updated: 2026-04-01 (v1.0 started)*
+*v0.1: Phase 1-2 COMPLETE ✅ — Core Rendering Foundation*
+*v1.0: Phase 3-4 ACTIVE ⏳ — Occlusion & Mod Integration*
+*Current: v1.0 milestone planning complete, ready for execution*
 *Granularity: Coarse | Mode: YOLO*

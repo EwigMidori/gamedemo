@@ -2,9 +2,9 @@
 
 ## Current State
 
-**Shipped:** v0.1 (MVP) — 2026-04-01  
-**Next Target:** v1.0 (Production)  
-**Status:** Phase 1-2 Complete, Phase 3-4 Pending
+**Shipped:** v0.1 (MVP) — 2026-04-01 — [Archive](milestones/v0.1-ROADMAP.md)  
+**Active:** v1.0 (Production) — 2026-04-01 — Planning Complete  
+**Status:** Phase 1-2 ✅ Shipped, Phase 3-4 ⏳ Ready for Execution
 
 ### v0.1 Achievements ✅
 
