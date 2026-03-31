@@ -3,8 +3,9 @@
 ## Current State
 
 **Shipped:** v1.0 (Production) — 2026-04-01 — [Archive](milestones/v1.0-ROADMAP.md)  
-**Status:** All Phases Complete ✅ — Production Ready  
-**Total:** 26/26 requirements delivered (v0.1: 12 + v1.0: 12)
+**Active:** v1.1 (Performance) — 2026-04-01 — Planning  
+**Status:** v1.0 Production Ready ✅, v1.1 In Progress  
+**Total:** 26/26 requirements delivered (v0.1: 12 + v1.0: 12), v1.1 targeting 6+ requirements
 
 ### v1.0 Achievements ✅ (Production Ready)
 
@@ -29,6 +30,22 @@
 - **迁移指南**: Bilingual documentation (EN 397 lines + ZH 287 lines)
 
 **项目架构**: 使用**正交方形瓷砖**配合Y轴深度排序实现伪3D效果。斜视角菱形瓷砖(VIS-01)超出范围——项目保持简单正交瓷砖系统。
+
+### v1.1 Goals (In Progress) 🎯
+
+**目标**: 视锥剔除与渲染优化，支持更大世界和更低配置设备
+
+**核心改进**:
+- **视锥剔除**: 只渲染屏幕内物体，跳过屏幕外 90%+ 物体
+- **渲染循环优化**: 更高效的更新和渲染流程
+- **LOD 系统**: 远距离物体简化渲染
+- **对象池优化**: 更高效的内存复用
+- **大场景支持**: 1000×1000 地图不卡顿
+
+**预期收益**:
+- 渲染性能提升: 10-50x（取决于场景复杂度）
+- 支持地图大小: 从 100×100 扩展到 1000×1000
+- 最低配置要求降低，支持更多设备
 
 ## What This Is
 

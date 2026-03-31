@@ -23,9 +23,12 @@ v0.1 (SHIPPED)            [█████████████████�
   ├─ Phase 1: Foundation  [██████████████████] 100% (6/6)
   └─ Phase 2: Core Render [██████████████████] 100% (6/6)
 
-v1.0 (ACTIVE)             [██████████████████] 100% (12/12 requirements) ✅
+v1.0 (SHIPPED)            [██████████████████] 100% (12/12 requirements) ✅
   ├─ Phase 3: Occlusion   [██████████████████] 100% (7/7) ✅
   └─ Phase 4: Mod Integr. [██████████████████] 100% (5/5) ✅
+
+v1.1 (ACTIVE)             [░░░░░░░░░░░░░░░░░░] 0% (0/6 requirements) ⏳
+  └─ Phase 5: Performance [░░░░░░░░░░░░░░░░░░] 0% (6 requirements)
 ```
 
 ---
@@ -258,8 +261,32 @@ v1.0 is **COMPLETE**. All 12 requirements delivered:
 
 ---
 
-*State tracking for: Gamedemo 伪3D视觉改进 v1.0*  
-*Last updated: 2026-04-01 (v1.0 SHIPPED)*  
-*Current: COMPLETE — All 12/12 requirements delivered*  
-*Previous: v0.1 shipped with 12/12 requirements*  
-*v1.0 Status: PRODUCTION READY ✅*
+## v1.1 Planning
+
+**Next Milestone Goal:** Frustum culling and rendering optimization for large worlds and lower-end devices
+
+**Pending Requirements:**
+- **Phase 5: Performance & Optimization** (6 requirements)
+  - PERF-03: Frustum Culling (skip 90%+ off-screen objects)
+  - PERF-04: Render Pipeline Refactoring (layered processing)
+  - PERF-05: LOD System (distance-based detail levels)
+  - PERF-06: Object Pool Optimization (zero GC pressure)
+  - PERF-07: Large World Support (1000×1000 maps)
+  - PERF-08: Performance Benchmark Validation
+
+**Target Metrics:**
+- 10-50x performance improvement over v1.0
+- 1000×1000 map at 60fps on GTX 1050
+- Support for low-end devices (integrated graphics @ 30fps)
+
+**Next Steps:**
+1. Run `/gsd-plan-phase 05` to create detailed plans
+2. Expected: 3-4 plans for Phase 5
+3. Focus: Frustum culling first, then LOD, then chunking
+
+---
+
+*State tracking for: Gamedemo 伪3D视觉改进*  
+*Last updated: 2026-04-01 (v1.1 STARTED)*  
+*Current: v1.0 PRODUCTION READY ✅ — v1.1 PLANNING ⏳*  
+*v0.1: 12/12 ✅ — v1.0: 12/12 ✅ — v1.1: 0/6 ⏳*
