@@ -354,8 +354,9 @@ v1.2 is **COMPLETE**. Critical bug fix for performance degradation at distance:
 
 | Task | Description | Status | Commit |
 |------|-------------|--------|--------|
-| PERF-12-opt | Optimize renderTerrain() tile iteration from O(n) to O(view²) | ✅ | [commit] |
-| PERF-12-cleanup | Increase terrain cleanup distance 50→80 tiles | ✅ | [commit] |
+| PERF-12-opt | Optimize renderTerrain() tile iteration from O(n) to O(view²) | ✅ | 96272c1 |
+| PERF-12-cleanup | Increase terrain cleanup distance 50→80 tiles | ✅ | 96272c1 |
+| cursor-fix | Fix cursor not following camera when player moves | ✅ | 57e22bc |
 
 **PERF-12 Optimization Details:**
 - **Before:** Iterated ALL world.tiles (potentially 1,000,000+) every frame — O(n)
