@@ -677,3 +677,23 @@ export {
   type PoolConfig,
   type PoolStats,
 } from "./objectPool";
+
+// =============================================================================
+// Chunk Management Exports
+// =============================================================================
+
+export {
+  ChunkManager,
+  DEFAULT_CHUNK_CONFIG,
+  defaultChunkGenerator,
+  calculateChunkCount,
+  calculateChunksInRadius,
+  type ChunkCoord,
+  type Chunk,
+  type ChunkTile,
+  type ChunkEntity,
+  type ChunkManagerConfig,
+  type ChunkLoadResult,
+  type ChunkManagerStats,
+  type ChunkGenerator,
+} from "./chunkManager";
