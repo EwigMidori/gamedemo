@@ -88,6 +88,10 @@ export class GameViewport {
   // Chunk manager for large world streaming
   private readonly chunkManager: ChunkManager;
 
+  // Entity visibility tracking for cleanup
+  private entityOutOfViewFrames = new Map<string, number>();
+  private readonly OUT_OF_VIEW_THRESHOLD = 120; // ~2 seconds at 60fps
+
   private readonly pathMarkers: Phaser.GameObjects.Rectangle[] = [];
   private readonly playerShadow: Phaser.GameObjects.Ellipse;
   private readonly playerSprite: Phaser.GameObjects.Sprite;
@@ -140,12 +144,12 @@ export class GameViewport {
       transitionHysteresis: 20
     });
 
-    // Initialize object pools for 20x20 view radius
-    // Max ~400 trees (20x20) + other entities = ~600 sprites needed
+    // Initialize object pools for maximum view (zoom 0.5x)
+    // Max ~2500 objects (50x50) at max zoom, + buffer for smooth performance
     this.spritePool = new ObjectPool<Phaser.GameObjects.Image>({
-      initialSize: 200,
-      minSize: 100,
-      maxSize: 800,
+      initialSize: 400,
+      minSize: 200,
+      maxSize: 3000,
       factory: () => this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0).setVisible(false),
       reset: (sprite) => {
         sprite.setVisible(false);
@@ -160,9 +164,9 @@ export class GameViewport {
     });
 
     this.shadowPool = new ObjectPool<Phaser.GameObjects.Ellipse>({
-      initialSize: 100,
-      minSize: 50,
-      maxSize: 600,
+      initialSize: 200,
+      minSize: 100,
+      maxSize: 2500,
       factory: () => this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4).setVisible(false),
       reset: (shadow) => {
         shadow.setVisible(false);
@@ -346,10 +350,12 @@ export class GameViewport {
       this.releaseSprite(sprite);
     }
 
-    // Destroy shadow
+    // Release shadow to pool instead of destroying
     const shadow = this.entityShadows.get(id);
-    destroyEntityShadow(shadow);
-    this.entityShadows.delete(id);
+    if (shadow) {
+      this.releaseShadow(shadow.sprite);
+      this.entityShadows.delete(id);
+    }
 
     // Unregister from depth sorter
     this.depthSorter.unregister(id);
@@ -750,13 +756,26 @@ export class GameViewport {
       this.occlusionAnimator.updateOcclusionState(occlusionResult.occludedEntities, this.entitySprites);
     }
 
-    // Hide entities that are no longer visible
+    // Hide entities that are no longer visible and cleanup after threshold
     for (const [id, entity] of this.entitySprites) {
       if (!visibleIds.has(id)) {
         const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
         sprite?.setVisible(false);
         const shadow = this.entityShadows.get(id);
         shadow?.sprite.setVisible(false);
+        
+        // Track how long entity has been out of view
+        const frames = (this.entityOutOfViewFrames.get(id) ?? 0) + 1;
+        this.entityOutOfViewFrames.set(id, frames);
+        
+        // Unregister entity after threshold to return sprites to pool
+        if (frames > this.OUT_OF_VIEW_THRESHOLD) {
+          this.unregisterEntity(id);
+          this.entityOutOfViewFrames.delete(id);
+        }
+      } else {
+        // Entity is visible, reset counter
+        this.entityOutOfViewFrames.delete(id);
       }
     }
 

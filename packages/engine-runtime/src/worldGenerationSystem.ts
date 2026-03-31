@@ -14,11 +14,11 @@ export const WorldGenerationSystem: RuntimeSystem = {
     const playerX = state.player.x;
     const playerY = state.player.y;
     
-    // Expansion threshold - expand when player is within 60 tiles of boundary
-    // This accounts for maximum zoom (0.5x) where visible range is ~40+ tiles
-    const EXPANSION_THRESHOLD = 60;
-    // Expansion size - add 48 tiles in each direction (2x visible range)
-    const EXPANSION_SIZE = 48;
+    // Expansion threshold - expand when player is within 80 tiles of boundary
+    // This accounts for maximum zoom (0.5x) where visible range is ~40-50 tiles
+    const EXPANSION_THRESHOLD = 80;
+    // Expansion size - add 64 tiles in each direction to ensure plenty of buffer
+    const EXPANSION_SIZE = 64;
     
     let needsExpansion = false;
     let newOriginX = world.originX;
