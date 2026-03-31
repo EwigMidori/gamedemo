@@ -178,12 +178,14 @@ export class GameViewport {
     });
 
     // Initial depth values will be overridden in renderPlayer based on world bounds
-    this.playerShadow = this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4);
+    // Start invisible until first renderPlayer call to avoid showing at (0,0)
+    this.playerShadow = this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4).setVisible(false);
     this.playerSprite = this.scene.add
       .sprite(0, 0, RuntimeAssetLibrary.pawnKey, 0)
       .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
       .setScale(1.15)
-      .setTint(0xf6e7c8);
+      .setTint(0xf6e7c8)
+      .setVisible(false);
     this.cursorHighlight = this.scene.add.rectangle(0, 0, 16, 16)
       .setStrokeStyle(1, 0xf6f2d7)
       .setVisible(false);
@@ -1034,8 +1036,10 @@ export class GameViewport {
     // Position shadow at player base (ellipse origin is center, so worldY puts center at base)
     this.playerShadow.setPosition(worldX, worldY);
     this.playerShadow.setDepth(playerDepth - 1); // Shadow below player
+    this.playerShadow.setVisible(true); // Ensure visible after first position update
     
     this.playerSprite.setPosition(worldX, worldY);
+    this.playerSprite.setVisible(true); // Ensure visible after first position update
     if (snapshot.player.motion) {
       this.playerSprite.anims.play(this.animationKeyForFrame(frame), true);
     } else {
