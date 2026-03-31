@@ -13,6 +13,24 @@ export {
   type ObliqueCameraConfig,
 } from "./camera";
 
+// Entity shadow exports
+export {
+  type EntityShadow,
+  type ShadowSize,
+  type ShadowCreationOptions,
+  type BatchShadowConfig,
+  SHADOW_SIZES,
+  SHADOW_DEFAULTS,
+  createEntityShadow,
+  updateShadowPosition,
+  updateShadowDepth,
+  destroyEntityShadow,
+  createBatchShadows,
+  updateShadowsVisibility,
+  destroyAllShadows,
+  getShadowStats
+} from "./entityShadow";
+
 export interface RuntimePreviewOptions {
   onPointerTileChange?(tile: RuntimePointerTile | null): void;
   onPointerPrimaryAction?(tile: RuntimePointerTile): void;
