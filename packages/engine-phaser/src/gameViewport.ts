@@ -140,11 +140,11 @@ export class GameViewport {
       transitionHysteresis: 20
     });
 
-    // Initialize object pools (expanded for 80x80 view radius)
+    // Initialize object pools
     this.spritePool = new ObjectPool<Phaser.GameObjects.Image>({
-      initialSize: 200,
-      minSize: 100,
-      maxSize: 1000,
+      initialSize: 100,
+      minSize: 50,
+      maxSize: 500,
       factory: () => this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0).setVisible(false),
       reset: (sprite) => {
         sprite.setVisible(false);
@@ -159,9 +159,9 @@ export class GameViewport {
     });
 
     this.shadowPool = new ObjectPool<Phaser.GameObjects.Ellipse>({
-      initialSize: 100,
-      minSize: 50,
-      maxSize: 500,
+      initialSize: 50,
+      minSize: 25,
+      maxSize: 200,
       factory: () => this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4).setVisible(false),
       reset: (shadow) => {
         shadow.setVisible(false);
@@ -528,7 +528,7 @@ export class GameViewport {
     const camera = this.scene.cameras.main;
     const centerX = camera.worldView.x + camera.worldView.width / 2;
     const centerY = camera.worldView.y + camera.worldView.height / 2;
-    const viewRadius = 80 * RuntimeAssetLibrary.tileSize; // 80 tiles radius (2x original)
+    const viewRadius = 20 * RuntimeAssetLibrary.tileSize; // 20 tiles radius
     
     const frustumBounds: FrustumBounds = {
       left: centerX - viewRadius,
