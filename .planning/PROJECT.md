@@ -8,13 +8,17 @@
 
 ### v0.1 Achievements ✅
 
+**实际完成:**
 - **坐标系统**: Type-safe TileCoord/WorldCoord/DepthValue with branded types
 - **高度注册表**: VisualPackRegistry with height/footprint metadata
 - **空间索引**: Uniform grid spatial indexing for O(1) queries
+- **斜视角相机**: ObliqueCamera with 45° projection (相机视角，非瓷砖斜切)
 - **深度排序**: Pseudo3DDepthSorter with Y+height algorithm
 - **阴影系统**: Height-based shadow rendering (low/medium/tall)
 - **统一渲染**: Single-container pipeline replacing fixed layers
 - **性能**: 60fps maintained with 50+ visible objects
+
+**注意**: v0.1实现了相机投影角度的斜视角，但瓷砖本身仍是正交方形，未实现45度菱形斜切瓷砖渲染(VIS-01)。
 
 ## What This Is
 
@@ -39,7 +43,6 @@
 - ✓ **容器不可变性** — 启动后注册表冻结，无全局可变状态 — existing
 
 **Phase 1: Foundation (v0.1):**
-- ✓ **VIS-01**: 斜视角瓷砖渲染 — 45度俯视，地图格子呈现前后层次感 — Phase 1
 - ✓ **VIS-02**: 物体高度属性系统 — 树木、建筑等可配置渲染高度 — Phase 1
 
 **Phase 2: Core Rendering (v0.1):**
@@ -47,6 +50,7 @@
 
 ### Active (v1.0)
 
+- [ ] **VIS-01**: 斜视角瓷砖渲染 — 45度俯视，地图格子呈现前后层次感 — *推迟到v1.0，需要新的tilemap渲染系统*
 - [ ] **VIS-04**: 动态遮挡处理 — 玩家在物体后方时，物体变半透明或显示轮廓
 - [ ] **VIS-05**: Visual Pack 扩展 — 伪3D效果可通过 visual packs 自定义
 
