@@ -8,6 +8,7 @@ class CoreBaseInstaller {
   install(context: Parameters<GameModModule["install"]>[0]): void {
     this.catalog.register(context.content);
     this.registerCommands(context);
+    this.registerVisualPacks(context);
     context.session.registerBootstrap((state) => {
       const itemIndex = new Map(context.content.snapshot().items.map((entry) => [entry.id, entry]));
       state.inventory = [];
@@ -42,6 +43,54 @@ class CoreBaseInstaller {
       id: "core:confirm-pointer-action",
       label: "Confirm pointer action",
       binding: "MouseRight"
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Visual Pack Registrations
+  // ---------------------------------------------------------------------------
+
+  private registerVisualPacks(context: Parameters<GameModModule["install"]>[0]): void {
+    // Visual pack registrations define pseudo-3D properties for core content
+    // These are used by the rendering system for depth sorting and occlusion
+    // See Phase 1: HEIGHT-01, HEIGHT-02, FOOTPRINT-01
+
+    // Trees are tall objects (48px height)
+    context.content.registerVisualPack({
+      contentId: "core:tree",
+      renderHeight: 48,
+      heightClassification: "tall",
+      footprint: { widthTiles: 1, depthTiles: 1 },
+      canOccludePlayer: true,
+      occlusionAlpha: 0.4
+    });
+
+    // Rocks are low objects (12px height)
+    context.content.registerVisualPack({
+      contentId: "core:rock",
+      renderHeight: 12,
+      heightClassification: "low",
+      footprint: { widthTiles: 1, depthTiles: 1 },
+      canOccludePlayer: false
+    });
+
+    // Berry bushes are medium objects (20px height)
+    context.content.registerVisualPack({
+      contentId: "core:berry_bush",
+      renderHeight: 20,
+      heightClassification: "medium",
+      footprint: { widthTiles: 1, depthTiles: 1 },
+      canOccludePlayer: true,
+      occlusionAlpha: 0.5
+    });
+
+    // Player character (16px height)
+    context.content.registerVisualPack({
+      contentId: "core:player",
+      renderHeight: 16,
+      heightClassification: "low",
+      footprint: { widthTiles: 1, depthTiles: 1 },
+      canOccludePlayer: false // Player doesn't occlude themselves
     });
   }
 }
