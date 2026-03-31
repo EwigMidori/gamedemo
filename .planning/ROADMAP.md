@@ -12,6 +12,7 @@
 - [x] **Phase 3: Occlusion & Polish** — Dynamic occlusion effects and performance validation
 - [x] **Phase 4: Mod Integration** — Visual Pack extension and backward compatibility
 - [x] **Phase 5: Performance & Optimization** — Frustum culling and large world support
+- [ ] **Phase 6: Scalability Fix** — Distance culling and resource optimization
 
 ## Phase Details
 
@@ -40,6 +41,33 @@
 **Archived:** See [v1.1 milestone](milestones/v1.1-ROADMAP.md)  
 **Status:** All 6 requirements satisfied — Frustum culling, layered render pipeline, LOD system, object pooling, dynamic world generation (10-50x performance improvement)
 
+### Phase 6: Scalability Fix 🔥 ACTIVE — Bug Fix
+
+**Goal:** Fix performance degradation at distance (O(n) traversal bug)
+
+**Critical Issue Found:**
+```typescript
+// Bug: Traverses ALL resources every frame
+for (const resource of snapshot.resources) {
+  // processing... O(n) where n grows with world size
+}
+```
+
+**Requirements:** PERF-09, PERF-10, PERF-11, PERF-12
+
+**Fixes:**
+1. **PERF-09:** Resource frustum culling — only process visible resources
+2. **PERF-10:** Structure frustum culling — only process visible structures
+3. **PERF-11:** Distant entity cleanup — remove resources >200 tiles away
+4. **PERF-12:** World tiles optimization — avoid redundant traversal
+
+**Success Criteria:**
+- 500 tiles from origin @ 60fps
+- Memory usage stable
+- No breaking changes
+
+**Status:** Bug identified, fix in progress
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Milestone |
@@ -49,6 +77,7 @@
 | 3. Occlusion & Polish | 3/3 | ✅ **Shipped** | v1.0 |
 | 4. Mod Integration | 2/2 | ✅ **Shipped** | v1.0 |
 | 5. Performance & Optimization | 3/3 | ✅ **Shipped** | v1.1 |
+| 6. Scalability Fix | 0/0 | 🔥 **Active** | v1.2 |
 
 ## Dependencies
 
@@ -96,6 +125,18 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 **v1.1 Archive:** [REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
 
+### v1.2 (Active) — 0/4 Pending 🔥
+
+**Bug Fix Milestone**
+
+| Category | Requirements | Phase | Status |
+|----------|--------------|-------|--------|
+| Scalability | PERF-09, PERF-10, PERF-11, PERF-12 | Phase 6 | 🔥 v1.2 |
+
+**Problem:** Performance degrades at distance due to O(n) traversal
+**Solution:** Distance culling and resource optimization
+**Target:** 500 tiles @ 60fps
+
 **Coverage Check:**
 - Total requirements: 32 (12 v0.1 + 12 v1.0 + 6 v1.1 + 2 additional)
 - v0.1 completed: 12 (37.5%) ✅
@@ -138,22 +179,22 @@ Milestone v0.1 shipped with Phase 1-2 complete. All core rendering infrastructur
 **Requirements:** 6 requirements ([REQUIREMENTS.md](REQUIREMENTS.md))
 **Target:** 10-50x performance improvement, support for 1000×1000 maps at 60fps
 
-**All Phases Complete**
+**Bug Fix Milestone: v1.2**
 
-Project has successfully delivered all planned features:
-- ✅ v0.1: Foundation + Core Rendering (12 requirements)
-- ✅ v1.0: Occlusion + Mod Integration (12 requirements)
-- ✅ v1.1: Performance + Infinite World (6 requirements + 3 additional)
+**Critical Issue Found**: Performance degrades as player moves away from spawn
+- Root cause: O(n) traversal of ever-growing resource/structure arrays
+- Impact: FPS drops significantly at 200+ tiles from origin
 
-**Next Steps:**
-1. `/gsd-new-milestone` — Start v1.2 for new features
-2. Or continue with ad-hoc improvements
+**v1.2 Fix Planned**:
+- Phase 6: Add distance-based culling for resources/structures
+- Phase 6: Cleanup distant invisible entities
+- Phase 6: Optimize world tiles traversal
 
 ---
 *Roadmap created: 2026-03-31*
-*Last updated: 2026-04-01 (v1.1 SHIPPED)*
+*Last updated: 2026-04-01 (v1.2 ACTIVE - Bug Fix)*
 *v0.1: Phase 1-2 COMPLETE ✅ — Core Rendering Foundation*
 *v1.0: Phase 3-4 COMPLETE ✅ — Occlusion & Mod Integration*
 *v1.1: Phase 5 COMPLETE ✅ — Performance & Large World Support*
-*Total: 30/30 requirements delivered*
+*v1.2: Phase 6 ACTIVE 🔥 — Scalability Fix*
 *Granularity: Coarse | Mode: YOLO*

@@ -11,9 +11,9 @@
 
 ## Current Position
 
-**Milestone:** v1.1 ✅ COMPLETE  
-**Git Tag:** `v1.1`  
-**Status:** All 5 Phases Complete — 32/32 Requirements Delivered
+**Milestone:** v1.2 🔥 ACTIVE — Bug Fix  
+**Git Tag:** None yet  
+**Status:** Critical Bug Found — Performance degrades at distance
 
 **Overall Progress:**
 
@@ -28,7 +28,22 @@ v1.0 (SHIPPED)            [█████████████████�
 
 v1.1 (SHIPPED)            [██████████████████] 100% (6/6 requirements) ✅
   └─ Phase 5: Performance [██████████████████] 100% (3/3 plans) ✅
+
+v1.2 (ACTIVE)             [░░░░░░░░░░░░░░░░░░] 0% (0/4 requirements) 🔥
+  └─ Phase 6: Scalability [░░░░░░░░░░░░░░░░░░] 0% (4 requirements) 🔥
 ```
+
+**🚨 CRITICAL BUG REPORTED:**
+- **Issue:** Performance degrades as player moves away from spawn
+- **Symptom:** FPS drops significantly at 200+ tiles from origin
+- **Root Cause:** O(n) traversal of ever-growing resource/structure arrays
+- **Impact:** Game becomes unplayable at distance
+
+**v1.2 Fix Plan:**
+- PERF-09: Resource frustum culling
+- PERF-10: Structure frustum culling  
+- PERF-11: Distant entity cleanup
+- PERF-12: World tiles optimization
 
 ---
 
