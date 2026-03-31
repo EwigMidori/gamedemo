@@ -12,13 +12,12 @@
 - **坐标系统**: Type-safe TileCoord/WorldCoord/DepthValue with branded types
 - **高度注册表**: VisualPackRegistry with height/footprint metadata
 - **空间索引**: Uniform grid spatial indexing for O(1) queries
-- **斜视角相机**: ObliqueCamera with 45° projection (相机视角，非瓷砖斜切)
 - **深度排序**: Pseudo3DDepthSorter with Y+height algorithm
 - **阴影系统**: Height-based shadow rendering (low/medium/tall)
 - **统一渲染**: Single-container pipeline replacing fixed layers
 - **性能**: 60fps maintained with 50+ visible objects
 
-**注意**: v0.1实现了相机投影角度的斜视角，但瓷砖本身仍是正交方形，未实现45度菱形斜切瓷砖渲染(VIS-01)。
+**项目架构**: 使用**正交方形瓷砖**配合Y轴深度排序实现伪3D效果。斜视角菱形瓷砖(VIS-01)超出范围——项目保持简单正交瓷砖系统。
 
 ## What This Is
 
@@ -50,7 +49,6 @@
 
 ### Active (v1.0)
 
-- [ ] **VIS-01**: 斜视角瓷砖渲染 — 45度俯视，地图格子呈现前后层次感 — *推迟到v1.0，需要新的tilemap渲染系统*
 - [ ] **VIS-04**: 动态遮挡处理 — 玩家在物体后方时，物体变半透明或显示轮廓
 - [ ] **VIS-05**: Visual Pack 扩展 — 伪3D效果可通过 visual packs 自定义
 
@@ -59,6 +57,7 @@
 - **真实3D渲染** — 使用 WebGL 3D 或 Three.js 等真正的3D引擎，保持2D Phaser 基础以简化 mod 开发和兼容性
 - **光照系统** — 动态光影、阴影投射等复杂光照效果，保持简单精灵渲染
 - **全视角旋转** — 玩家不能旋转视角，固定斜视角以减少美术资源需求
+- **斜视角瓷砖渲染** — 45度菱形瓷砖系统 (VIS-01)。项目使用**正交方形瓷砖**，通过Y轴深度排序和物体高度实现伪3D效果，无需改变瓷砖形状
 - **垂直地形** — 多层高度地形（悬崖、地下室等），保持单层地图以简化游戏逻辑
 
 ## Context
