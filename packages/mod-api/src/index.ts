@@ -101,3 +101,21 @@ export interface GameModModule {
   manifest: GameModManifest;
   install(context: ModInstallContext): void | Promise<void>;
 }
+
+// =============================================================================
+// Visual Pack Exports
+// =============================================================================
+
+export type {
+  VisualPackMetadata,
+  HeightClassification,
+  FootprintBounds,
+  VisualPackRegistry
+} from "./visualPack";
+
+export {
+  HeightClassifications,
+  HEIGHT_RANGES,
+  DEFAULT_FOOTPRINT,
+  DEFAULT_VISUAL_PACK
+} from "./visualPack";
