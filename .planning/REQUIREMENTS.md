@@ -77,36 +77,47 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COORD-01 | Phase 1 | Pending |
-| COORD-02 | Phase 1 | Pending |
-| HEIGHT-01 | Phase 1 | Pending |
-| HEIGHT-02 | Phase 1 | Pending |
-| FOOTPRINT-01 | Phase 1 | Pending |
-| SPATIAL-01 | Phase 1 | Pending |
-| CAMERA-01 | Phase 1 | Pending |
-| DEPTH-01 | Phase 2 | Pending |
-| DEPTH-02 | Phase 2 | Pending |
-| DEPTH-03 | Phase 2 | Pending |
-| DEPTH-04 | Phase 2 | Pending |
-| DEPTH-05 | Phase 2 | Pending |
-| SHADOW-01 | Phase 2 | Pending |
-| OCC-01 | Phase 3 | Pending |
-| OCC-02 | Phase 3 | Pending |
-| OCC-03 | Phase 3 | Pending |
-| OCC-04 | Phase 3 | Pending |
-| OCC-05 | Phase 3 | Pending |
-| PERF-01 | Phase 3 | Pending |
-| PERF-02 | Phase 3 | Pending |
-| MOD-01 | Phase 4 | Pending |
-| MOD-02 | Phase 4 | Pending |
-| MOD-03 | Phase 4 | Pending |
-| MOD-04 | Phase 4 | Pending |
-| MOD-05 | Phase 4 | Pending |
+| COORD-01 | Phase 1: Foundation | Pending |
+| COORD-02 | Phase 1: Foundation | Pending |
+| HEIGHT-01 | Phase 1: Foundation | Pending |
+| HEIGHT-02 | Phase 1: Foundation | Pending |
+| FOOTPRINT-01 | Phase 1: Foundation | Pending |
+| SPATIAL-01 | Phase 1: Foundation | Pending |
+| CAMERA-01 | Phase 1: Foundation | Pending |
+| DEPTH-01 | Phase 2: Core Rendering | Pending |
+| DEPTH-02 | Phase 2: Core Rendering | Pending |
+| DEPTH-03 | Phase 2: Core Rendering | Pending |
+| DEPTH-04 | Phase 2: Core Rendering | Pending |
+| DEPTH-05 | Phase 2: Core Rendering | Pending |
+| SHADOW-01 | Phase 2: Core Rendering | Pending |
+| OCC-01 | Phase 3: Occlusion & Polish | Pending |
+| OCC-02 | Phase 3: Occlusion & Polish | Pending |
+| OCC-03 | Phase 3: Occlusion & Polish | Pending |
+| OCC-04 | Phase 3: Occlusion & Polish | Pending |
+| OCC-05 | Phase 3: Occlusion & Polish | Pending |
+| PERF-01 | Phase 3: Occlusion & Polish | Pending |
+| PERF-02 | Phase 3: Occlusion & Polish | Pending |
+| MOD-01 | Phase 4: Mod Integration | Pending |
+| MOD-02 | Phase 4: Mod Integration | Pending |
+| MOD-03 | Phase 4: Mod Integration | Pending |
+| MOD-04 | Phase 4: Mod Integration | Pending |
+| MOD-05 | Phase 4: Mod Integration | Pending |
 
-**Coverage:**
+**Phase Mapping Summary:**
+
+| Phase | Requirements Count | Category |
+|-------|-------------------|----------|
+| Phase 1: Foundation | 7 | VIS-01 + VIS-02 |
+| Phase 2: Core Rendering | 6 | VIS-03 |
+| Phase 3: Occlusion & Polish | 7 | VIS-04 |
+| Phase 4: Mod Integration | 5 | VIS-05 |
+| **Total** | **26** | **VIS-01 through VIS-05** |
+
+**Coverage Validation:**
 - v1 requirements: 26 total
 - Mapped to phases: 26
-- Unmapped: 0 ✓
+- Orphaned: 0 ✓
+- Duplicated: 0 ✓
 
 ---
 *Requirements defined: 2026-03-31*
