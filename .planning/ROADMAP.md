@@ -65,7 +65,22 @@ Wave 2 (Depends on Wave 1):
 5. Basic shadows are rendered based on height classification (tall objects cast shadows, flat objects don't)
 6. Depth updates occur in renderPrepare phase without triggering per-frame full re-sort when positions haven't changed
 
-**Plans:** TBD
+**Plans:** 3 plans in 2 waves
+
+**Plan List:**
+- [ ] `02-01-PLAN.md` — Depth Sorter Core (DEPTH-01, DEPTH-05) — Wave 1
+- [ ] `02-02-PLAN.md` — Shadow System (SHADOW-01) — Wave 1
+- [ ] `02-03-PLAN.md` — Rendering Pipeline Integration (DEPTH-02, DEPTH-03, DEPTH-04) — Wave 2
+
+**Wave Structure:**
+```
+Wave 1 (Parallel):
+  ├─ Plan 02-01: Pseudo3DDepthSorter with Y+height algorithm
+  └─ Plan 02-02: Height-based shadow rendering
+
+Wave 2 (Depends on Wave 1):
+  └─ Plan 02-03: Unified pipeline integration with gameViewport.ts
+```
 
 ### Phase 3: Occlusion & Polish
 
@@ -108,7 +123,7 @@ Wave 2 (Depends on Wave 1):
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | **Complete** | 01-01, 01-02, 01-03 |
-| 2. Core Rendering | 0/0 | Not started | - |
+| 2. Core Rendering | 0/3 | **Planning Complete** | 02-01, 02-02, 02-03 |
 | 3. Occlusion & Polish | 0/0 | Not started | - |
 | 4. Mod Integration | 0/0 | Not started | - |
 
@@ -156,12 +171,13 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 ## Next Steps
 
 1. ✅ Phase 1 Foundation: **COMPLETE** (all 3 plans executed)
-2. Phase 2 planning: Create plans for Core Rendering (DEPTH-01 through DEPTH-05, SHADOW-01)
-3. Execute Phase 2 via `/gsd-execute-phase 02`
-4. Phase 4 can be planned in parallel with Phase 3 (after Phase 2 begins)
+2. ✅ Phase 2 planning: **COMPLETE** (3 plans created)
+3. Execute Phase 2 via `/gsd-execute-phase 02` (starts with Wave 1: 02-01 and 02-02 in parallel)
+4. Phase 4 can be planned in parallel with Phase 3 (after Phase 2 Wave 1 completes)
 
 ---
 *Roadmap created: 2026-03-31*  
 *Last updated: 2026-03-31*  
 *Phase 1 Foundation: COMPLETE*  
+*Phase 2 Core Rendering: PLANNED*  
 *Granularity: Coarse | Mode: YOLO*
