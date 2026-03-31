@@ -5,6 +5,9 @@ export const MOD_API_VERSION = "0.1.0";
 // Barrel export for coordinate system types
 export * from "./coordinates";
 
+// Barrel export for depth sorting
+export * from "./depthSorter";
+
 export interface RuntimeProfileEntry {
   id: string;
   version: string;
@@ -541,3 +544,24 @@ export {
   type SpatialQueryResult,
   type SpatialIndexStats,
 } from "./spatialIndex";
+
+// =============================================================================
+// Depth Sorting Exports
+// =============================================================================
+
+export {
+  // Types
+  type EntityType,
+  EntityTypes,
+  type EntitySprite,
+  type DepthCalculationOptions,
+  // Constants
+  TYPE_PRIORITY,
+  DEPTH_POSITION_MULTIPLIER,
+  // Functions
+  calculateDepth,
+  calculateEntityDepth,
+  calculateBatchDepths,
+  // Class
+  Pseudo3DDepthSorter,
+} from "./depthSorter";
