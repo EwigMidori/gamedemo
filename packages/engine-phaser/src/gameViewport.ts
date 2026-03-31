@@ -18,7 +18,10 @@ import {
   shouldOccludePlayer,
   OcclusionManager,
   FrustumCuller,
-  createFrustumBoundsFromCamera
+  createFrustumBoundsFromCamera,
+  LayeredRenderPipeline,
+  LODManager,
+  type LODLevel
 } from "@gamedemo/engine-core";
 import type { EntityType } from "@gamedemo/engine-core";
 import { OcclusionAnimator } from "./occlusionAnimator";
@@ -71,7 +74,11 @@ export class GameViewport {
   
   // Frustum culling for performance
   private readonly frustumCuller = new FrustumCuller(0.1); // 10% margin
-  
+
+  // Render pipeline and LOD management
+  private readonly renderPipeline: LayeredRenderPipeline;
+  private readonly lodManager: LODManager;
+
   // Entity sprite pool (reusable sprites)
   private readonly spritePool: Phaser.GameObjects.Image[] = [];
   private readonly maxPoolSize = 50;
@@ -111,6 +118,23 @@ export class GameViewport {
       fadeDurationMs: 250,
       targetAlpha: 0.4
     });
+
+    // Initialize render pipeline with frustum culling enabled
+    this.renderPipeline = new LayeredRenderPipeline({
+      enableFrustumCull: true,
+      enableDepthSort: true,
+      enableOcclusion: true,
+      frustumMargin: 0.1,
+      occlusionCheckInterval: 2
+    });
+
+    // Initialize LOD manager
+    this.lodManager = new LODManager({
+      nearThreshold: 200,
+      mediumThreshold: 500,
+      transitionHysteresis: 20
+    });
+
     // Initial depth values will be overridden in renderPlayer based on world bounds
     this.playerShadow = this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4);
     this.playerSprite = this.scene.add
@@ -332,6 +356,53 @@ export class GameViewport {
     }
   }
 
+  /**
+   * Apply LOD settings to an entity based on distance to camera.
+   * Updates shadow visibility, animation state, and scale.
+   */
+  private applyLODToEntity(id: string, lod: LODLevel): void {
+    const entity = this.entitySprites.get(id);
+    if (!entity) return;
+
+    const settings = this.lodManager.getSettingsForLOD(lod);
+    const sprite = entity.sprite as Phaser.GameObjects.Image | undefined;
+    const shadow = this.entityShadows.get(id);
+
+    // Apply shadow visibility based on LOD
+    if (shadow) {
+      shadow.sprite.setVisible(settings.shadowEnabled && sprite?.visible === true);
+    }
+
+    // Apply scale based on LOD
+    if (sprite) {
+      const baseScale = 1.0;
+      sprite.setScale(baseScale * settings.scale);
+
+      // Apply alpha based on LOD
+      if (!settings.alphaEnabled) {
+        sprite.setAlpha(1.0); // Full opacity when alpha disabled
+      }
+    }
+  }
+
+  /**
+   * Get LOD for entity at given world position.
+   * Calculates distance from camera center.
+   */
+  private getLODForEntityAt(entityX: number, entityY: number, entityId: string): LODLevel {
+    const camera = this.scene.cameras.main;
+    const cameraCenterX = camera.worldView.x + camera.worldView.width / 2;
+    const cameraCenterY = camera.worldView.y + camera.worldView.height / 2;
+
+    return this.lodManager.getLODForEntity(
+      entityX,
+      entityY,
+      cameraCenterX,
+      cameraCenterY,
+      entityId
+    );
+  }
+
   create(): void {
     const world = this.session.snapshot().world;
     this.createAnimations();
@@ -441,6 +512,10 @@ export class GameViewport {
           frame
         );
       }
+
+      // Apply LOD settings based on distance to camera
+      const lod = this.getLODForEntityAt(entityX, entityY, resource.id);
+      this.applyLODToEntity(resource.id, lod);
     }
 
     // Process planted resources with frustum culling
@@ -475,6 +550,10 @@ export class GameViewport {
           0xbfa57f
         );
       }
+
+      // Apply LOD settings
+      const lod = this.getLODForEntityAt(entityX, entityY, planted.id);
+      this.applyLODToEntity(planted.id, lod);
     }
 
     // Process structures with frustum culling
@@ -517,6 +596,10 @@ export class GameViewport {
           frame
         );
       }
+
+      // Apply LOD settings
+      const lod = this.getLODForEntityAt(entityX, entityY, structure.id);
+      this.applyLODToEntity(structure.id, lod);
     }
 
     // Process drops with frustum culling
@@ -555,6 +638,10 @@ export class GameViewport {
           frame
         );
       }
+
+      // Apply LOD settings
+      const lod = this.getLODForEntityAt(entityX, entityY, drop.id);
+      this.applyLODToEntity(drop.id, lod);
     }
 
     // Update depths for all dirty entities
@@ -627,7 +714,18 @@ export class GameViewport {
    * Get performance metrics from the viewport
    */
   getPerformanceMetrics() {
-    return this.performanceMonitor?.getCurrentMetrics() ?? null;
+    const base = this.performanceMonitor?.getCurrentMetrics() ?? null;
+    const pipelineResult = this.renderPipeline.getLastResult();
+    
+    return {
+      ...base,
+      pipeline: pipelineResult ? {
+        totalTimeMs: pipelineResult.totalTimeMs,
+        stageTimings: Object.fromEntries(pipelineResult.stageTimings),
+        entitiesAtEachStage: Object.fromEntries(pipelineResult.entitiesAtEachStage)
+      } : null,
+      lod: this.lodManager.getStats()
+    };
   }
 
   /**
