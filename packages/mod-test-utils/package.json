@@ -1,0 +1,15 @@
+{
+  "name": "@gamedemo/mod-test-utils",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@gamedemo/engine-core": "workspace:*",
+    "@gamedemo/engine-content": "workspace:*",
+    "@gamedemo/mod-api": "workspace:*",
+    "@gamedemo/engine-runtime": "workspace:*"
+  }
+}
