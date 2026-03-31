@@ -2,6 +2,9 @@ export const ENGINE_PACKAGE_NAME = "@gamedemo/engine-core";
 export const ENGINE_VERSION = "0.1.0";
 export const MOD_API_VERSION = "0.1.0";
 
+// Barrel export for coordinate system types
+export * from "./coordinates";
+
 export interface RuntimeProfileEntry {
   id: string;
   version: string;
@@ -481,3 +484,48 @@ export interface RuntimeUiPanel {
   title: string;
   body: string;
 }
+
+// =============================================================================
+// Coordinate System Exports (explicit re-export for documentation)
+// =============================================================================
+
+export {
+  // Branded coordinate types
+  type TileX,
+  type TileY,
+  type TileCoord,
+  type WorldX,
+  type WorldY,
+  type WorldCoord,
+  type DepthValue,
+  // Anchor types
+  type AnchorPoint,
+  ANCHOR_BOTTOM_CENTER,
+  ANCHOR_CENTER,
+  ANCHOR_TOP_LEFT,
+  ANCHOR_BOTTOM_LEFT,
+  // Size and bounds types
+  type TileSize,
+  type WorldBounds,
+  DEFAULT_TILE_SIZE,
+  PHASER_DEFAULT_TILE_SIZE,
+  // Factory functions
+  tileX,
+  tileY,
+  worldX,
+  worldY,
+  tileCoord,
+  worldCoord,
+  depthValue,
+  createTileSize,
+  // Conversion utilities
+  CoordinateConverters,
+  // Type guards
+  isTileCoord,
+  isWorldCoord,
+  // Utility functions
+  cloneTileCoord,
+  cloneWorldCoord,
+  tileCoordAdd,
+  worldCoordAdd,
+} from "./coordinates";
