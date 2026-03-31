@@ -648,3 +648,20 @@ export {
   type PipelineResult,
   type RenderStage,
 } from "./renderPipeline";
+
+// =============================================================================
+// LOD Management Exports
+// =============================================================================
+
+export {
+  LODManager,
+  DEFAULT_LOD_CONFIG,
+  DEFAULT_LOD_SETTINGS,
+  hasShadows,
+  hasAnimation,
+  hasAlpha,
+  type LODLevel,
+  type LODConfig,
+  type LODSettings,
+  type LODSelection,
+} from "./lodManager";
