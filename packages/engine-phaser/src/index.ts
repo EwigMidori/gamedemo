@@ -3,6 +3,16 @@ import type { RuntimeCommandInput, RuntimePointerTile } from "@gamedemo/engine-c
 import type { AssembledRuntime, RuntimeSession } from "@gamedemo/engine-runtime";
 import { RuntimeGameScene } from "./gameScene";
 
+// Camera exports
+export {
+  ObliqueCamera,
+  PERSPECTIVE_ANGLE,
+  PERSPECTIVE_SCALE_Y,
+  createCameraBoundsFromWorld,
+  type CameraBounds,
+  type ObliqueCameraConfig,
+} from "./camera";
+
 export interface RuntimePreviewOptions {
   onPointerTileChange?(tile: RuntimePointerTile | null): void;
   onPointerPrimaryAction?(tile: RuntimePointerTile): void;

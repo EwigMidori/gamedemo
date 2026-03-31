@@ -529,3 +529,15 @@ export {
   tileCoordAdd,
   worldCoordAdd,
 } from "./coordinates";
+
+// =============================================================================
+// Spatial Indexing Exports
+// =============================================================================
+
+export {
+  SpatialIndex,
+  type SpatialObject,
+  type SpatialQueryBounds,
+  type SpatialQueryResult,
+  type SpatialIndexStats,
+} from "./spatialIndex";
