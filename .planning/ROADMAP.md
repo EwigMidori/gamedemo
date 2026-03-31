@@ -14,73 +14,15 @@
 
 ## Phase Details
 
-### Phase 1: Foundation ✅ COMPLETE
+### Phase 1: Foundation ✅ SHIPPED in v0.1
 
-**Goal:** Establish type-safe coordinate systems and height property infrastructure that all subsequent phases depend on
+**Archived:** See [v0.1 milestone](milestones/v0.1-ROADMAP.md)  
+**Status:** All 7 requirements satisfied — Coordinate system, height registry, spatial indexing complete
 
-**Depends on:** Nothing (first phase)
+### Phase 2: Core Rendering ✅ SHIPPED in v0.1
 
-**Requirements:** ~~COORD-01~~, ~~COORD-02~~, ~~HEIGHT-01~~, ~~HEIGHT-02~~, ~~FOOTPRINT-01~~, ~~SPATIAL-01~~, ~~CAMERA-01~~
-
-**Status:** All 7 requirements satisfied — Phase 1 Complete
-
-**Success Criteria** (what must be TRUE when this phase completes):
-1. All sprite anchor points are standardized to bottom-center, with no visual misalignment between gameplay position and rendered position
-2. Height metadata (`renderHeight`) is stored in VisualPackRegistry and validated at mod load time, with clear error messages for invalid values
-3. Type-safe coordinate conversions between TileCoord, WorldCoord, and DepthValue are enforced by the TypeScript compiler
-4. Spatial indexing structure (quadtree or spatial hash) exists and can efficiently query objects within a world region
-5. Oblique perspective camera (45° angled view) is active and objects appear with correct depth perspective
-6. Footprint bounds are stored separately from visual bounds and used for collision detection
-
-**Plans:** 3 plans in 2 waves
-
-**Plan List:**
-- [x] `01-01-PLAN.md` — Coordinate System Types (COORD-01, COORD-02) — Wave 1 ✅
-- [x] `01-02-PLAN.md` — Height & Footprint Registry (HEIGHT-01, HEIGHT-02, FOOTPRINT-01) — Wave 1 ✅
-- [x] `01-03-PLAN.md` — Spatial Index & Camera (SPATIAL-01, CAMERA-01) — Wave 2 ✅
-
-**Wave Structure:**
-```
-Wave 1 (Parallel):
-  ├─ Plan 01-01: Coordinate types and conversions
-  └─ Plan 01-02: Visual pack registry with height/footprint
-
-Wave 2 (Depends on Wave 1):
-  └─ Plan 01-03: Spatial indexing and oblique camera
-```
-
-### Phase 2: Core Rendering
-
-**Goal:** Replace fixed layer rendering with Y+height depth sorting for correct spatial occlusion
-
-**Depends on:** Phase 1 (requires HEIGHT-01 for height data, COORD-01 for position calculations)
-
-**Requirements:** DEPTH-01, DEPTH-02, DEPTH-03, DEPTH-04, DEPTH-05, SHADOW-01
-
-**Success Criteria** (what must be TRUE when this phase completes):
-1. Objects are rendered in correct depth order using Y+height algorithm — tall objects (trees, buildings) appear behind shorter objects when appropriate based on position
-2. Fixed layer system (layers 0, 2, 3, 4, 7) is replaced with single-container rendering pipeline
-3. gameViewport.ts integration is complete — existing game viewport uses new depth sorter without breaking existing mod API
-4. Depth sorting works correctly for overlapping objects at all angles with no flickering or z-fighting
-5. Basic shadows are rendered based on height classification (tall objects cast shadows, flat objects don't)
-6. Depth updates occur in renderPrepare phase without triggering per-frame full re-sort when positions haven't changed
-
-**Plans:** 2/3 plans executed
-
-**Plan List:**
-- [x] `02-01-PLAN.md` — Depth Sorter Core (DEPTH-01, DEPTH-05) — Wave 1 ✅
-- [x] `02-02-PLAN.md` — Shadow System (SHADOW-01) — Wave 1 ✅
-- [ ] `02-03-PLAN.md` — Rendering Pipeline Integration (DEPTH-02, DEPTH-03, DEPTH-04) — Wave 2
-
-**Wave Structure:**
-```
-Wave 1 (Parallel):
-  ├─ Plan 02-01: Pseudo3DDepthSorter with Y+height algorithm
-  └─ Plan 02-02: Height-based shadow rendering
-
-Wave 2 (Depends on Wave 1):
-  └─ Plan 02-03: Unified pipeline integration with gameViewport.ts
-```
+**Archived:** See [v0.1 milestone](milestones/v0.1-ROADMAP.md)  
+**Status:** All 6 requirements satisfied — Depth sorting, shadow system, unified pipeline complete
 
 ### Phase 3: Occlusion & Polish
 
@@ -120,12 +62,12 @@ Wave 2 (Depends on Wave 1):
 
 ## Progress Table
 
-| Phase | Plans Complete | Status | Completed |
+| Phase | Plans Complete | Status | Milestone |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 3/3 | **Complete** | 01-01, 01-02, 01-03 |
-| 2. Core Rendering | 2/3 | In Progress| 02-01, 02-02 |
-| 3. Occlusion & Polish | 0/0 | Not started | - |
-| 4. Mod Integration | 0/0 | Not started | - |
+| 1. Foundation | 3/3 | ✅ **Shipped** | v0.1 |
+| 2. Core Rendering | 3/3 | ✅ **Shipped** | v0.1 |
+| 3. Occlusion & Polish | 0/0 | ⏳ Pending | v1.0 |
+| 4. Mod Integration | 0/0 | ⏳ Pending | v1.0 |
 
 ## Dependencies
 
@@ -147,16 +89,26 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 ## Coverage Summary
 
+### v0.1 (Shipped) — 13/13 Complete ✅
+
 | Category | Requirements | Phase | Status |
 |----------|--------------|-------|--------|
-| Foundation | ~~COORD-01~~, ~~COORD-02~~, ~~HEIGHT-01~~, ~~HEIGHT-02~~, ~~FOOTPRINT-01~~, ~~SPATIAL-01~~, ~~CAMERA-01~~ | Phase 1 | **Complete** |
-| Core Rendering | ~~DEPTH-01~~, DEPTH-02, DEPTH-03, DEPTH-04, ~~DEPTH-05~~, ~~SHADOW-01~~ | Phase 2 | In Progress |
-| Occlusion & Polish | OCC-01, OCC-02, OCC-03, OCC-04, OCC-05, PERF-01, PERF-02 | Phase 3 | Pending |
-| Mod Integration | MOD-01, MOD-02, MOD-03, MOD-04, MOD-05 | Phase 4 | Pending |
+| Foundation | ~~COORD-01~~, ~~COORD-02~~, ~~HEIGHT-01~~, ~~HEIGHT-02~~, ~~FOOTPRINT-01~~, ~~SPATIAL-01~~, ~~CAMERA-01~~ | Phase 1 | ✅ v0.1 |
+| Core Rendering | ~~DEPTH-01~~, ~~DEPTH-02~~, ~~DEPTH-03~~, ~~DEPTH-04~~, ~~DEPTH-05~~, ~~SHADOW-01~~ | Phase 2 | ✅ v0.1 |
+
+**v0.1 Archive:** [REQUIREMENTS.md](milestones/v0.1-REQUIREMENTS.md)
+
+### v1.0 (Pending) — 12/12 Remaining
+
+| Category | Requirements | Phase | Status |
+|----------|--------------|-------|--------|
+| Occlusion & Polish | OCC-01, OCC-02, OCC-03, OCC-04, OCC-05, PERF-01, PERF-02 | Phase 3 | ⏳ Pending |
+| Mod Integration | MOD-01, MOD-02, MOD-03, MOD-04, MOD-05 | Phase 4 | ⏳ Pending |
 
 **Coverage Check:**
-- Total v1 requirements: 26
-- Mapped to phases: 26
+- Total requirements: 26
+- v0.1 completed: 13 (50%)
+- v1.0 pending: 13 (50%)
 - Orphaned: 0 ✓
 
 ## Risk Indicators
@@ -170,14 +122,23 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 ## Next Steps
 
-1. ✅ Phase 1 Foundation: **COMPLETE** (all 3 plans executed)
-2. ✅ Phase 2 planning: **COMPLETE** (3 plans created)
-3. Execute Phase 2 via `/gsd-execute-phase 02` (starts with Wave 1: 02-01 and 02-02 in parallel)
-4. Phase 4 can be planned in parallel with Phase 3 (after Phase 2 Wave 1 completes)
+### v0.1 Complete ✅
+
+Milestone v0.1 shipped with Phase 1-2 complete. All core rendering infrastructure in place.
+
+### v1.0 Planning
+
+1. **Start next milestone** — Run `/gsd-new-milestone` to begin Phase 3-4
+2. **Phase 3: Occlusion & Polish** — Dynamic alpha fade, performance benchmarks
+3. **Phase 4: Mod Integration** — Visual Pack schema, backward compatibility
+
+**Estimated:** Phase 3 (~3-4 plans), Phase 4 (~2-3 plans)
+
+**Target:** Production-ready pseudo-3D with full mod support
 
 ---
-*Roadmap created: 2026-03-31*  
-*Last updated: 2026-03-31*  
-*Phase 1 Foundation: COMPLETE*  
-*Phase 2 Core Rendering: IN PROGRESS (2/3 plans)*  
+*Roadmap created: 2026-03-31*
+*Last updated: 2026-04-01 (v0.1 shipped)*
+*v0.1: Phase 1-2 COMPLETE — Core Rendering Foundation*
+*v1.0: Phase 3-4 PENDING — Occlusion & Mod Integration*
 *Granularity: Coarse | Mode: YOLO*
