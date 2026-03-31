@@ -7,6 +7,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@gamedemo/engine-core": "workspace:*"
+    "@gamedemo/engine-core": "workspace:*",
+    "@gamedemo/mod-api": "workspace:*",
+    "@gamedemo/engine-runtime": "workspace:*"
   }
 }

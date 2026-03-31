@@ -8,6 +8,10 @@ import type {
 } from "@gamedemo/engine-core";
 import type { VisualPackMetadata, HeightClassification } from "@gamedemo/mod-api";
 import { HeightValidator } from "@gamedemo/engine-runtime";
+import { VisualPackLoader } from "./visualPackLoader";
+
+export { VisualPackLoader } from "./visualPackLoader";
+export type { LoadResult, PatternRule, ValidationError } from "./visualPackLoader";
 
 function assertUnique<T>(
   registry: Map<string, T>,
@@ -56,11 +60,15 @@ export class ContentRegistryBuilder {
   // Visual Pack Registry
   // ---------------------------------------------------------------------------
 
-  registerVisualPack(metadata: VisualPackMetadata): void {
+  registerVisualPack(pack: unknown): void {
+    // Use loader for version detection and validation
+    const loadResult = VisualPackLoader.load(pack);
+    const metadata = loadResult.metadata;
+
     if (this.visualPacks.has(metadata.contentId)) {
       throw new Error(`Duplicate visual pack for content id: ${metadata.contentId}`);
     }
-    // Validate at registration time
+    // Runtime validation via HeightValidator
     const validator = new HeightValidator();
     validator.validate(metadata);
     const result = validator.getResult();
@@ -68,6 +76,7 @@ export class ContentRegistryBuilder {
       const errorMessages = result.errors.map((e: { field: string; message: string }) => `${e.field}: ${e.message}`).join("; ");
       throw new Error(`Visual pack validation failed for ${metadata.contentId}: ${errorMessages}`);
     }
+
     this.visualPacks.set(metadata.contentId, metadata);
   }
 
