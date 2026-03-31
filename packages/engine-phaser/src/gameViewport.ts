@@ -517,10 +517,11 @@ export class GameViewport {
       const tile = world.tiles[index];
       const terrain = this.options.contentIndex.terrain(tile.terrainId);
       const key = `${tile.x},${tile.y}`;
-      // Terrain always renders at a fixed depth below all dynamic entities
-      // It uses the tile's Y to determine which terrain is on top of which (for overlapping)
-      // but stays below all players, resources, structures, etc.
-      const terrainDepth = this.depthBaseOffset - 10000 + tile.y * 100;
+      // Terrain always renders at the very bottom layer
+      // It uses a fixed depth system that doesn't interact with entity Y-based sorting
+      // Terrain only needs minimal Y-sorting among themselves for overlap handling
+      // The -1000000 offset ensures terrain is always below any entity (players, objects, etc.)
+      const terrainDepth = this.depthBaseOffset - 1000000 + tile.y;
       const sprite = this.scene.add.image(
         tile.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
         tile.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
