@@ -30,7 +30,22 @@
 5. Oblique perspective camera (45° angled view) is active and objects appear with correct depth perspective
 6. Footprint bounds are stored separately from visual bounds and used for collision detection
 
-**Plans:** TBD
+**Plans:** 3 plans in 2 waves
+
+**Plan List:**
+- [ ] `01-01-PLAN.md` — Coordinate System Types (COORD-01, COORD-02) — Wave 1
+- [ ] `01-02-PLAN.md` — Height & Footprint Registry (HEIGHT-01, HEIGHT-02, FOOTPRINT-01) — Wave 1
+- [ ] `01-03-PLAN.md` — Spatial Index & Camera (SPATIAL-01, CAMERA-01) — Wave 2
+
+**Wave Structure:**
+```
+Wave 1 (Parallel):
+  ├─ Plan 01-01: Coordinate types and conversions
+  └─ Plan 01-02: Visual pack registry with height/footprint
+
+Wave 2 (Depends on Wave 1):
+  └─ Plan 01-03: Spatial indexing and oblique camera
+```
 
 ### Phase 2: Core Rendering
 
@@ -90,7 +105,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/0 | Not started | - |
+| 1. Foundation | 0/3 | Planned | 01-01, 01-02, 01-03 |
 | 2. Core Rendering | 0/0 | Not started | - |
 | 3. Occlusion & Polish | 0/0 | Not started | - |
 | 4. Mod Integration | 0/0 | Not started | - |
@@ -138,8 +153,8 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 ## Next Steps
 
-1. `/gsd-plan-phase 1` to begin planning Phase 1 (Foundation)
-2. Execute Phase 1 plans via `/gsd-execute`
+1. ✅ Phase 1 planning complete (3 plans created)
+2. Execute Phase 1 plans via `/gsd-execute-phase 01`
 3. Transition to Phase 2 via `/gsd-transition` when Phase 1 success criteria met
 
 ---
