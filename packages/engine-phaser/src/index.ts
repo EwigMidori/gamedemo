@@ -31,6 +31,31 @@ export {
   getShadowStats
 } from "./entityShadow";
 
+// Performance Monitoring exports
+export {
+  PerformanceMonitor,
+  type PerformanceMetrics,
+  type PerformanceReport,
+  type PerformanceMonitorOptions
+} from "./performanceMonitor";
+
+export {
+  PerformanceOverlay,
+  type PerformanceOverlayOptions
+} from "./performanceOverlay";
+
+export {
+  BenchmarkScene,
+  type BenchmarkSceneOptions,
+  type BenchmarkResults
+} from "./benchmarkScene";
+
+// Occlusion Animator export
+export {
+  OcclusionAnimator,
+  type OcclusionAnimatorOptions
+} from "./occlusionAnimator";
+
 export interface RuntimePreviewOptions {
   onPointerTileChange?(tile: RuntimePointerTile | null): void;
   onPointerPrimaryAction?(tile: RuntimePointerTile): void;

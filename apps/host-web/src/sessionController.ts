@@ -1,12 +1,17 @@
 import type {
   RuntimeCommandInput,
-  RuntimePointerTile
+  RuntimePointerTile,
+  PerformanceReport
 } from "@gamedemo/engine-core";
 import {
   RuntimeSaves,
   type AssembledRuntime,
   type RuntimeSession
 } from "@gamedemo/engine-runtime";
+import {
+  PerformanceMonitor,
+  PerformanceOverlay
+} from "@gamedemo/engine-phaser";
 import { VanillaBreakRules } from "@gamedemo/vanilla-domain";
 import type { HostShellRefs } from "./hostShell";
 import { SessionCommandCatalog } from "./sessionCommandCatalog";
@@ -33,6 +38,10 @@ class SessionController {
     focusedResourceId: null,
     focusedStructureId: null
   };
+
+  // Performance monitoring
+  private performanceMonitor?: PerformanceMonitor;
+  private performanceOverlay?: PerformanceOverlay;
 
   constructor(
     private readonly runtime: AssembledRuntime,
@@ -370,6 +379,112 @@ class SessionController {
     if (!targetStillExists || !playerMoving) {
       this.pendingHoldAction = null;
     }
+  }
+
+  // ============================================================================
+  // Performance Monitoring Methods
+  // ============================================================================
+
+  /**
+   * Initialize performance monitoring with a Phaser scene
+   * Call this from the game scene's create() method
+   */
+  initPerformanceMonitoring(scene: import("phaser").Scene): void {
+    this.performanceMonitor = new PerformanceMonitor({
+      maxSamples: 1000,
+      enableWarnings: true
+    });
+
+    this.performanceOverlay = new PerformanceOverlay({
+      scene,
+      x: 10,
+      y: 10,
+      visible: false // Hidden by default, toggle with F3
+    });
+
+    // Set up F3 key to toggle overlay
+    const f3Key = scene.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.F3);
+    if (f3Key) {
+      f3Key.on("down", () => {
+        this.performanceOverlay?.toggle();
+      });
+    }
+
+    // Expose debug API to window
+    if (typeof window !== "undefined") {
+      (window as unknown as Record<string, unknown>).gameDebug = {
+        exportPerformance: () => this.exportPerformanceReport(),
+        downloadPerformance: () => this.downloadPerformanceReport(),
+        toggleOverlay: () => this.performanceOverlay?.toggle(),
+        getPerformanceMonitor: () => this.performanceMonitor
+      };
+    }
+  }
+
+  /**
+   * Update performance metrics. Call from scene's update loop.
+   */
+  updatePerformanceMetrics(metrics: {
+    frameTimeMs: number;
+    renderTimeMs?: number;
+    occlusionTimeMs?: number;
+    sortTimeMs?: number;
+    visibleObjectCount?: number;
+  }): void {
+    this.performanceMonitor?.recordFrame(metrics);
+    this.performanceOverlay?.update(this.performanceMonitor?.getCurrentMetrics() ?? null);
+  }
+
+  /**
+   * Export performance report as JSON string
+   */
+  exportPerformanceReport(): string {
+    if (!this.performanceMonitor) {
+      return "{}";
+    }
+    return this.performanceMonitor.exportToJSON();
+  }
+
+  /**
+   * Generate performance report object
+   */
+  generatePerformanceReport(): PerformanceReport | null {
+    return this.performanceMonitor?.generateReport() ?? null;
+  }
+
+  /**
+   * Download performance report as JSON file
+   */
+  downloadPerformanceReport(): void {
+    const json = this.exportPerformanceReport();
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `performance-report-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Toggle performance overlay visibility
+   */
+  togglePerformanceOverlay(): void {
+    this.performanceOverlay?.toggle();
+  }
+
+  /**
+   * Check if performance overlay is visible
+   */
+  isPerformanceOverlayVisible(): boolean {
+    return this.performanceOverlay?.isVisible() ?? false;
+  }
+
+  /**
+   * Get the performance monitor instance
+   */
+  getPerformanceMonitor(): PerformanceMonitor | undefined {
+    return this.performanceMonitor;
   }
 }
 

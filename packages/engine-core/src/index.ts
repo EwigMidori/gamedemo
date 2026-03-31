@@ -546,6 +546,58 @@ export {
 } from "./spatialIndex";
 
 // =============================================================================
+// Occlusion System Exports
+// =============================================================================
+
+export {
+  // Core class
+  OcclusionManager,
+  // Types
+  type OcclusionState,
+  type OcclusionCheckResult,
+  type OcclusionManagerOptions,
+  type OccludableEntity,
+  type HeightClassification,
+  type HeightClassificationConfig,
+  // Height classification
+  HeightClassifications,
+  classifyHeight,
+  shouldOccludePlayer,
+  // Utilities
+  createOccludableEntity,
+  validateHeightClassification,
+} from "./occlusionManager";
+
+// =============================================================================
+// Layered Entity System Exports
+// =============================================================================
+
+export {
+  // Types
+  type LayeredEntity,
+  type EntityLayer,
+  type LayeredEntityConfig,
+  type LayerConfig,
+  // Type guard
+  isLayeredEntity,
+  // Utilities
+  getTotalLayerHeight,
+  getLayerAtIndex,
+  getTopLayer,
+  getBottomLayer,
+  canEntityOcclude,
+  getOccludingLayerIndices,
+  createSingleLayerConfig,
+} from "./layeredEntity";
+
+export {
+  LayeredEntityRenderer,
+  type LayerDepthOptions,
+  type CalculatedLayer,
+  createLayeredEntity,
+} from "./layeredEntityRenderer";
+
+// =============================================================================
 // Depth Sorting Exports
 // =============================================================================
 

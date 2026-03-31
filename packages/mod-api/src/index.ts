@@ -119,3 +119,19 @@ export {
   DEFAULT_FOOTPRINT,
   DEFAULT_VISUAL_PACK
 } from "./visualPack";
+
+// Visual Pack v2 Schema exports
+export {
+  type VisualPackV1,
+  type VisualPackV2,
+  type VisualPack,
+  type VisualPackLayer,
+  isVisualPackV2,
+  isVisualPackV1,
+  getCanOccludePlayer,
+  getOcclusionAlpha,
+  hasLayers,
+  getTotalRenderHeight,
+  validateVisualPack,
+  createVisualPackV2
+} from "./visualPackV2";

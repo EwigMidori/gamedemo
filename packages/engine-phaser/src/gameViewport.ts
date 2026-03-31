@@ -34,6 +34,7 @@ import {
 } from "./entityShadow";
 import type { EntityShadow } from "./entityShadow";
 import type { VisualPackMetadata } from "@gamedemo/mod-api";
+import { PerformanceMonitor } from "./performanceMonitor";
 
 interface GameViewportOptions {
   contentIndex: RuntimeContentIndex;
@@ -82,13 +83,18 @@ export class GameViewport {
   private renderedTerrainCount = 0;
   private depthBaseOffset = DEFAULT_DEPTH_BASE_OFFSET;
 
+  // Performance monitoring
+  private performanceMonitor?: PerformanceMonitor;
+
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly session: RuntimeSession,
-    private readonly options: GameViewportOptions
+    private readonly options: GameViewportOptions,
+    performanceMonitor?: PerformanceMonitor
   ) {
     this.camera = new ObliqueCamera(scene);
-    
+    this.performanceMonitor = performanceMonitor;
+
     // Initialize occlusion system
     const { OcclusionManager } = require("@gamedemo/engine-core");
     this.occlusionManager = new OcclusionManager({
@@ -374,6 +380,7 @@ export class GameViewport {
    * Uses depth sorter for correct occlusion.
    */
   private renderEntitiesUnified(snapshot: RuntimeSessionState): void {
+    const renderStart = performance.now();
     const visibleIds = new Set<string>();
 
     // Process resources
@@ -500,7 +507,9 @@ export class GameViewport {
     }
 
     // Update depths for all dirty entities
+    const sortStart = performance.now();
     this.depthSorter.update();
+    this.performanceMonitor?.recordSortTime(performance.now() - sortStart);
 
     // Apply calculated depths to sprites and shadows
     for (const entity of this.depthSorter.getAll()) {
@@ -518,15 +527,17 @@ export class GameViewport {
     // Perform occlusion check every N frames
     this.frameCount++;
     if (this.frameCount % this.occlusionCheckInterval === 0) {
+      const occlusionStart = performance.now();
       const playerX = snapshot.player.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
       const playerY = (snapshot.player.y + 1) * RuntimeAssetLibrary.tileSize;
-      
+
       const occlusionResult = this.occlusionManager.checkOcclusion(
         worldX(playerX),
         worldY(playerY),
         this.entitySprites
       );
-      
+      this.performanceMonitor?.recordOcclusionTime(performance.now() - occlusionStart);
+
       // Apply alpha animations based on occlusion state
       this.occlusionAnimator.updateOcclusionState(occlusionResult.occludedEntities, this.entitySprites);
     }
@@ -540,6 +551,10 @@ export class GameViewport {
         shadow?.sprite.setVisible(false);
       }
     }
+
+    // Record render timing
+    const renderTime = performance.now() - renderStart;
+    this.performanceMonitor?.recordRenderTime(renderTime);
   }
 
   getObjects(): Phaser.GameObjects.GameObject[] {
@@ -555,6 +570,20 @@ export class GameViewport {
       this.cursorHighlight,
       this.moveTargetMarker
     ];
+  }
+
+  /**
+   * Get performance metrics from the viewport
+   */
+  getPerformanceMetrics() {
+    return this.performanceMonitor?.getCurrentMetrics() ?? null;
+  }
+
+  /**
+   * Set the performance monitor for timing instrumentation
+   */
+  setPerformanceMonitor(monitor: PerformanceMonitor): void {
+    this.performanceMonitor = monitor;
   }
 
   private renderTerrain(): void {
