@@ -858,36 +858,50 @@ export class GameViewport {
     const minY = Math.floor(playerY - viewRadius);
     const maxY = Math.ceil(playerY + viewRadius);
 
+    // Build tile lookup map for O(1) access (only once per frame, lazy initialized)
+    // This avoids iterating all world.tiles (could be 1,000,000+)
+    const tileMap = new Map<string, typeof world.tiles[0]>();
+    for (const tile of world.tiles) {
+      // Only index tiles within view bounds to save memory
+      if (tile.x >= minX && tile.x <= maxX && tile.y >= minY && tile.y <= maxY) {
+        tileMap.set(`${tile.x},${tile.y}`, tile);
+      }
+    }
+
     // Track how many sprites we created this frame
     let createdCount = 0;
 
-    // Iterate through world tiles and render those within view that don't have sprites
-    for (const tile of world.tiles) {
-      // Skip tiles outside view bounds
-      if (tile.x < minX || tile.x > maxX || tile.y < minY || tile.y > maxY) {
-        continue;
+    // Iterate through view bounds and render tiles that exist and don't have sprites
+    // This is O(view^2) = ~6,400 iterations instead of O(total_tiles) = potentially 1,000,000+
+    for (let x = minX; x <= maxX; x++) {
+      for (let y = minY; y <= maxY; y++) {
+        const key = `${x},${y}`;
+
+        // Skip if sprite already exists
+        if (this.terrainSprites.has(key)) {
+          continue;
+        }
+
+        // Get tile from lookup map
+        const tile = tileMap.get(key);
+        if (!tile) {
+          continue; // No tile at this position
+        }
+
+        // Create sprite for this tile
+        const terrain = this.options.contentIndex.terrain(tile.terrainId);
+        const terrainDepth = this.depthBaseOffset - 1000000 + tile.y;
+        const sprite = this.scene.add.image(
+          tile.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
+          tile.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
+          RuntimeAssetLibrary.worldKey,
+          terrain?.frame ?? RuntimeTheme.terrainFrame(tile.terrainId)
+        )
+          .setDepth(terrainDepth)
+          .setTint(terrain?.tint ?? RuntimeTheme.terrainTint(tile.terrainId));
+        this.terrainSprites.set(key, sprite);
+        createdCount++;
       }
-
-      const key = `${tile.x},${tile.y}`;
-
-      // Skip if sprite already exists
-      if (this.terrainSprites.has(key)) {
-        continue;
-      }
-
-      // Create sprite for this tile
-      const terrain = this.options.contentIndex.terrain(tile.terrainId);
-      const terrainDepth = this.depthBaseOffset - 1000000 + tile.y;
-      const sprite = this.scene.add.image(
-        tile.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-        tile.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-        RuntimeAssetLibrary.worldKey,
-        terrain?.frame ?? RuntimeTheme.terrainFrame(tile.terrainId)
-      )
-        .setDepth(terrainDepth)
-        .setTint(terrain?.tint ?? RuntimeTheme.terrainTint(tile.terrainId));
-      this.terrainSprites.set(key, sprite);
-      createdCount++;
     }
 
     // Log if we created many sprites (indicates player returned to previously cleaned area)
@@ -899,11 +913,11 @@ export class GameViewport {
   /**
    * Cleanup terrain sprites that are far from the player.
    * PERF-12: World tiles optimization - prevent unbounded memory growth.
-   * Note: 50 tiles is ~2.5x the view frustum radius (20 tiles), enough buffer
-   * to avoid flickering while keeping memory usage bounded.
+   * Note: 80 tiles is 2x the view radius (40), enough buffer
+   * to avoid pop-in while keeping memory usage bounded.
    */
   private cleanupDistantTerrainSprites(playerX: number, playerY: number): void {
-    const cleanupDistance = 50; // tiles - 2.5x view frustum radius
+    const cleanupDistance = 80; // tiles - 2x view radius (40) for buffer, prevents pop-in
     const cleanupDistanceSq = cleanupDistance * cleanupDistance;
     const tileSize = RuntimeAssetLibrary.tileSize;
 

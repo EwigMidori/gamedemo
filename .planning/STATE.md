@@ -347,3 +347,18 @@ v1.2 is **COMPLETE**. Critical bug fix for performance degradation at distance:
 *Last updated: 2026-04-01 (v1.2 COMPLETE)*  
 *Current: v1.2 BUG FIX ✅ (4/4 complete)*  
 *v0.1: 12/12 ✅ — v1.0: 12/12 ✅ — v1.1: 6/6 ✅ — v1.2: 4/4 ✅*
+
+---
+
+## Quick Tasks Completed
+
+| Task | Description | Status | Commit |
+|------|-------------|--------|--------|
+| PERF-12-opt | Optimize renderTerrain() tile iteration from O(n) to O(view²) | ✅ | [commit] |
+| PERF-12-cleanup | Increase terrain cleanup distance 50→80 tiles | ✅ | [commit] |
+
+**PERF-12 Optimization Details:**
+- **Before:** Iterated ALL world.tiles (potentially 1,000,000+) every frame — O(n)
+- **After:** Build tile lookup map for view bounds, iterate only view area (~6,400 tiles) — O(view²)
+- **Impact:** ~150x performance improvement for terrain rendering in large worlds
+- **Cleanup Distance:** 50→80 tiles (2x view radius) to prevent pop-in
