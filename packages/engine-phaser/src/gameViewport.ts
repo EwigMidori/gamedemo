@@ -145,7 +145,7 @@ export class GameViewport {
       initialSize: 200,
       minSize: 100,
       maxSize: 1000,
-      factory: () => this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0),
+      factory: () => this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0).setVisible(false),
       reset: (sprite) => {
         sprite.setVisible(false);
         sprite.setPosition(0, 0);
@@ -162,7 +162,7 @@ export class GameViewport {
       initialSize: 100,
       minSize: 50,
       maxSize: 500,
-      factory: () => this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4),
+      factory: () => this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4).setVisible(false),
       reset: (shadow) => {
         shadow.setVisible(false);
         shadow.setPosition(0, 0);
