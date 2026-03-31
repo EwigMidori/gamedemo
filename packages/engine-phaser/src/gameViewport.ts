@@ -463,14 +463,9 @@ export class GameViewport {
     this.depthBaseOffset = calculateDepthBaseOffset(minWorldYPixels);
     this.depthSorter.setBaseOffset(this.depthBaseOffset);
 
-    const bounds = createCameraBoundsFromWorld(
-      world.originX,
-      world.originY,
-      world.width,
-      world.height,
-      RuntimeAssetLibrary.tileSize
-    );
-    this.camera.setup(bounds);
+    // Remove camera bounds to allow free movement
+    // Camera will always follow player without world boundary constraints
+    this.camera.setup();
     this.camera.follow(this.playerSprite);
     this.camera.setBackgroundColor(RuntimeTheme.background);
 
@@ -837,12 +832,8 @@ export class GameViewport {
 
   private renderTerrain(): void {
     const world = this.session.snapshot().world;
-    this.scene.cameras.main.setBounds(
-      world.originX * RuntimeAssetLibrary.tileSize,
-      world.originY * RuntimeAssetLibrary.tileSize,
-      world.width * RuntimeAssetLibrary.tileSize,
-      world.height * RuntimeAssetLibrary.tileSize
-    );
+    // Camera bounds removed to allow free movement
+    // this.scene.cameras.main.setBounds(...)
     if (world.tiles.length === this.renderedTerrainCount) {
       return;
     }
