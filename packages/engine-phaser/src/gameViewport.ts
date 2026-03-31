@@ -1236,11 +1236,25 @@ export class GameViewport {
   }
 
   private renderCursor(): void {
-    const selectedTile = this.options.getSelectedTile?.() ?? null;
-    if (!selectedTile) {
+    // Get current mouse position and calculate tile in real-time
+    // This ensures cursor follows camera movement even when mouse is stationary
+    const pointer = this.scene.input.activePointer;
+    const worldX = pointer.worldX;
+    const worldY = pointer.worldY;
+    const tileX = Math.floor(worldX / RuntimeAssetLibrary.tileSize);
+    const tileY = Math.floor(worldY / RuntimeAssetLibrary.tileSize);
+    
+    // Check if mouse is within world bounds
+    const snapshot = this.session.snapshot();
+    const world = snapshot.world;
+    const maxX = world.originX + world.width;
+    const maxY = world.originY + world.height;
+    
+    if (tileX < world.originX || tileY < world.originY || tileX >= maxX || tileY >= maxY) {
       this.cursorHighlight.setVisible(false);
       return;
     }
+    
     const style = this.options.getSelectedTileMarker?.() ?? {
       strokeColor: 0xf3ead8,
       fillColor: 0xffffff,
@@ -1249,8 +1263,8 @@ export class GameViewport {
     this.cursorHighlight
       .setVisible(true)
       .setPosition(
-        selectedTile.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-        selectedTile.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5
+        tileX * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
+        tileY * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5
       )
       .setStrokeStyle(1, style.strokeColor, 1)
       .setFillStyle(style.fillColor, style.fillAlpha);
