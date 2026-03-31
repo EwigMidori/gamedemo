@@ -292,6 +292,9 @@ importers:
       '@gamedemo/engine-runtime':
         specifier: workspace:*
         version: link:../engine-runtime
+      '@gamedemo/mod-api':
+        specifier: workspace:*
+        version: link:../mod-api
       phaser:
         specifier: ^3.90.0
         version: 3.90.0
@@ -322,6 +325,21 @@ importers:
 
   packages/mod-loader:
     dependencies:
+      '@gamedemo/mod-api':
+        specifier: workspace:*
+        version: link:../mod-api
+
+  packages/mod-test-utils:
+    dependencies:
+      '@gamedemo/engine-content':
+        specifier: workspace:*
+        version: link:../engine-content
+      '@gamedemo/engine-core':
+        specifier: workspace:*
+        version: link:../engine-core
+      '@gamedemo/engine-runtime':
+        specifier: workspace:*
+        version: link:../engine-runtime
       '@gamedemo/mod-api':
         specifier: workspace:*
         version: link:../mod-api

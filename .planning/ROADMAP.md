@@ -24,71 +24,15 @@
 **Archived:** See [v0.1 milestone](milestones/v0.1-ROADMAP.md)  
 **Status:** All 6 requirements satisfied — Depth sorting, shadow system, unified pipeline complete
 
-### Phase 3: Occlusion & Polish ✅ COMPLETE
+### Phase 3: Occlusion & Polish ✅ SHIPPED in v1.0
 
-**Goal:** Implement dynamic occlusion effects and validate 60fps performance with 500+ visible objects
-**Status:** All 7 requirements satisfied — OcclusionManager, alpha fade, performance benchmarks complete
+**Archived:** See [v1.0 milestone](milestones/v1.0-ROADMAP.md)  
+**Status:** All 7 requirements satisfied — OcclusionManager, alpha fade (40%), performance benchmarks (500+ @ 60fps)
 
-**Depends on:** Phase 2 (requires depth sorting for occlusion to know which objects are in front)
+### Phase 4: Mod Integration ✅ SHIPPED in v1.0
 
-**Requirements:** OCC-01, OCC-02, OCC-03, OCC-04, OCC-05, PERF-01, PERF-02
-
-**Success Criteria** (what must be TRUE when this phase completes):
-1. When player walks behind tall objects (trees, buildings), those objects fade to 30-50% alpha so player remains visible
-2. Occlusion checks run every 2-3 frames (not every frame) without noticeable delay in fade effect
-3. Split-layer objects render correctly — tree trunks at one depth, canopy at another depth, with player visible between layers
-4. Height classification system (flat/low/medium/tall) is in place and drives occlusion and shadow behavior
-5. Game maintains consistent 60fps when 500+ objects are visible on screen (measured via performance benchmarks)
-6. Performance benchmarks exist and validate that rendering time stays under 16ms per frame
-
-**Plans:** 3 plans in 2 waves
-
-**Plan List:**
-- [x] `03-01-PLAN.md` — Occlusion Manager (OCC-01, OCC-02) — Wave 1
-- [x] `03-02-PLAN.md` — Performance Optimization (PERF-01, PERF-02) — Wave 2
-- [x] `03-03-PLAN.md` — Split-Layer Objects (OCC-04) — Wave 2
-
-**Wave Structure:**
-```
-Wave 1 (Foundation):
-  └─ Plan 03-01: Occlusion detection and alpha fade effects
-
-Wave 2 (Advanced Features):
-  ├─ Plan 03-02: Performance benchmarking and optimization
-  └─ Plan 03-03: Multi-layer object rendering
-```
-
-### Phase 4: Mod Integration ✅ COMPLETE
-
-**Goal:** Extend Visual Pack system for pseudo-3D configuration while maintaining 100% backward compatibility
-**Status:** All 5 requirements satisfied — Visual Pack v2 schema, backward compatibility, migration guides complete
-
-**Depends on:** Phase 1 (requires VisualPackRegistry extension from HEIGHT-01), can parallelize with Phase 3
-
-**Requirements:** MOD-01, MOD-02, MOD-03, MOD-04, MOD-05
-
-**Success Criteria** (what must be TRUE when this phase completes):
-1. Visual Pack schema supports pseudo-3D configuration (height, footprint, occlusion rules) in a backward-compatible way
-2. Legacy mods without pseudo-3D config render correctly using fallback defaults (height=0, flat classification)
-3. New pseudo-3D features are opt-in via Visual Pack versioning — mods explicitly declare support for new features
-4. Migration guide exists for mod authors explaining how to add pseudo-3D metadata to existing visual packs
-5. All core mods (core:base, core:worldgen, core:player, core:inventory, core:survival, core:gathering, core:building, core:crafting, core:ui-hud) work without modification in both legacy and pseudo-3D rendering modes
-6. Test suite validates that existing saves load correctly and render with new system
-
-**Plans:** 2 plans in 2 waves
-
-**Plan List:**
-- [x] `04-01-PLAN.md` — Visual Pack Schema v2 (MOD-01, MOD-02, MOD-03) — Wave 1
-- [x] `04-02-PLAN.md` — Core Mod Testing & Migration (MOD-04, MOD-05) — Wave 2
-
-**Wave Structure:**
-```
-Wave 1 (Schema & Compatibility):
-  └─ Plan 04-01: Visual Pack v2 schema and backward compatibility layer
-
-Wave 2 (Testing & Documentation):
-  └─ Plan 04-02: Test suite and migration guide for mod authors
-```
+**Archived:** See [v1.0 milestone](milestones/v1.0-ROADMAP.md)  
+**Status:** All 5 requirements satisfied — Visual Pack v2 schema, 100% backward compatibility, bilingual migration guides (77 tests)
 
 ## Progress Table
 
@@ -135,7 +79,7 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 | Occlusion | ~~OCC-01~~, ~~OCC-02~~, ~~OCC-03~~, ~~OCC-04~~, ~~OCC-05~~, ~~PERF-01~~, ~~PERF-02~~ | Phase 3 | ✅ v1.0 |
 | Mod Integration | ~~MOD-01~~, ~~MOD-02~~, ~~MOD-03~~, ~~MOD-04~~, ~~MOD-05~~ | Phase 4 | ✅ v1.0 |
 
-**v1.0 Requirements:** [REQUIREMENTS.md](REQUIREMENTS.md)
+**v1.0 Archive:** [REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md)
 
 **Coverage Check:**
 - Total requirements: 26 (13 v0.1 + 12 v1.0)
