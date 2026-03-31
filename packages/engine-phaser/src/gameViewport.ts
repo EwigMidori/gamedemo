@@ -279,7 +279,8 @@ export class GameViewport {
       .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
       .setPosition(entityX, entityY)
       .setFrame(frame)
-      .setTint(tint ?? RuntimeTheme.objectTint);
+      .setTint(tint ?? RuntimeTheme.objectTint)
+      .setVisible(true); // Ensure sprite is visible when registered
 
     // Calculate initial depth with dynamic base offset
     const depth = calculateDepth(entityY, visualPack.renderHeight, type, {
@@ -321,6 +322,7 @@ export class GameViewport {
       );
       if (shadow) {
         updateShadowPosition(shadow, entityX, entityY);
+        shadow.sprite.setVisible(true); // Ensure shadow is visible when created
         this.entityShadows.set(id, shadow);
       }
     }
