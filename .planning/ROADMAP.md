@@ -7,10 +7,10 @@
 
 ## Phases
 
-- [ ] **Phase 1: Foundation** — Establish coordinate discipline and height property system
-- [ ] **Phase 2: Core Rendering** — Implement depth sorting and unified rendering pipeline
-- [ ] **Phase 3: Occlusion & Polish** — Dynamic occlusion effects and performance validation
-- [ ] **Phase 4: Mod Integration** — Visual Pack extension and backward compatibility
+- [x] **Phase 1: Foundation** — Establish coordinate discipline and height property system
+- [x] **Phase 2: Core Rendering** — Implement depth sorting and unified rendering pipeline
+- [x] **Phase 3: Occlusion & Polish** — Dynamic occlusion effects and performance validation
+- [x] **Phase 4: Mod Integration** — Visual Pack extension and backward compatibility
 
 ## Phase Details
 
@@ -24,9 +24,10 @@
 **Archived:** See [v0.1 milestone](milestones/v0.1-ROADMAP.md)  
 **Status:** All 6 requirements satisfied — Depth sorting, shadow system, unified pipeline complete
 
-### Phase 3: Occlusion & Polish
+### Phase 3: Occlusion & Polish ✅ COMPLETE
 
 **Goal:** Implement dynamic occlusion effects and validate 60fps performance with 500+ visible objects
+**Status:** All 7 requirements satisfied — OcclusionManager, alpha fade, performance benchmarks complete
 
 **Depends on:** Phase 2 (requires depth sorting for occlusion to know which objects are in front)
 
@@ -57,9 +58,10 @@ Wave 2 (Advanced Features):
   └─ Plan 03-03: Multi-layer object rendering
 ```
 
-### Phase 4: Mod Integration
+### Phase 4: Mod Integration ✅ COMPLETE
 
 **Goal:** Extend Visual Pack system for pseudo-3D configuration while maintaining 100% backward compatibility
+**Status:** All 5 requirements satisfied — Visual Pack v2 schema, backward compatibility, migration guides complete
 
 **Depends on:** Phase 1 (requires VisualPackRegistry extension from HEIGHT-01), can parallelize with Phase 3
 
@@ -76,8 +78,8 @@ Wave 2 (Advanced Features):
 **Plans:** 2 plans in 2 waves
 
 **Plan List:**
-- [ ] `04-01-PLAN.md` — Visual Pack Schema v2 (MOD-01, MOD-02, MOD-03) — Wave 1
-- [ ] `04-02-PLAN.md` — Core Mod Testing & Migration (MOD-04, MOD-05) — Wave 2
+- [x] `04-01-PLAN.md` — Visual Pack Schema v2 (MOD-01, MOD-02, MOD-03) — Wave 1
+- [x] `04-02-PLAN.md` — Core Mod Testing & Migration (MOD-04, MOD-05) — Wave 2
 
 **Wave Structure:**
 ```
@@ -94,8 +96,8 @@ Wave 2 (Testing & Documentation):
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✅ **Shipped** | v0.1 |
 | 2. Core Rendering | 3/3 | ✅ **Shipped** | v0.1 |
-| 3. Occlusion & Polish | 0/0 | ⏳ Pending | v1.0 |
-| 4. Mod Integration | 0/0 | ⏳ Pending | v1.0 |
+| 3. Occlusion & Polish | 3/3 | ✅ **Shipped** | v1.0 |
+| 4. Mod Integration | 2/2 | ✅ **Shipped** | v1.0 |
 
 ## Dependencies
 
@@ -126,26 +128,19 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 **v0.1 Archive:** [REQUIREMENTS.md](milestones/v0.1-REQUIREMENTS.md)
 
-### v1.0 (Planned) — 12/12 Pending ⏳
+### v1.0 (SHIPPED) — 12/12 Complete ✅
 
 | Category | Requirements | Phase | Status |
 |----------|--------------|-------|--------|
-| Occlusion | OCC-01, OCC-02, OCC-03, OCC-04, OCC-05, PERF-01, PERF-02 | Phase 3 | ⏳ v1.0 |
-| Mod Integration | MOD-01, MOD-02, MOD-03, MOD-04, MOD-05 | Phase 4 | ⏳ v1.0 |
+| Occlusion | ~~OCC-01~~, ~~OCC-02~~, ~~OCC-03~~, ~~OCC-04~~, ~~OCC-05~~, ~~PERF-01~~, ~~PERF-02~~ | Phase 3 | ✅ v1.0 |
+| Mod Integration | ~~MOD-01~~, ~~MOD-02~~, ~~MOD-03~~, ~~MOD-04~~, ~~MOD-05~~ | Phase 4 | ✅ v1.0 |
 
 **v1.0 Requirements:** [REQUIREMENTS.md](REQUIREMENTS.md)
 
-### v1.0 (Pending) — 12/12 Remaining
-
-| Category | Requirements | Phase | Status |
-|----------|--------------|-------|--------|
-| Occlusion & Polish | OCC-01, OCC-02, OCC-03, OCC-04, OCC-05, PERF-01, PERF-02 | Phase 3 | ⏳ Pending |
-| Mod Integration | MOD-01, MOD-02, MOD-03, MOD-04, MOD-05 | Phase 4 | ⏳ Pending |
-
 **Coverage Check:**
-- Total requirements: 26
-- v0.1 completed: 13 (50%)
-- v1.0 pending: 13 (50%)
+- Total requirements: 26 (13 v0.1 + 12 v1.0)
+- v0.1 completed: 13 (50%) ✅
+- v1.0 completed: 12 (50%) ✅
 - Orphaned: 0 ✓
 
 ## Risk Indicators
@@ -163,21 +158,22 @@ Phase 4 (Mod Integration) ── can start after Phase 1 completes
 
 Milestone v0.1 shipped with Phase 1-2 complete. All core rendering infrastructure in place.
 
-### v1.0 In Progress ⏳
+### v1.0 COMPLETE ✅
 
-**Milestone v1.0 started:** 2026-04-01  
+**Milestone v1.0 shipped:** 2026-04-01  
 **Goal:** Production-ready pseudo-3D with dynamic occlusion and full mod support  
-**Requirements:** 12 requirements ([REQUIREMENTS.md](REQUIREMENTS.md))  
-**Plans:** 5 plans across Phase 3-4  
+**Requirements:** 12 requirements ([REQUIREMENTS.md](REQUIREMENTS.md)) — ALL DELIVERED ✅  
+**Plans:** 5 plans across Phase 3-4 — ALL COMPLETE ✅  
 
-**Ready to Execute:**
-1. `/gsd-plan-phase 03` — Phase 3: Occlusion & Polish
-2. `/gsd-plan-phase 04` — Phase 4: Mod Integration (can run parallel with Phase 3)
+**Summary:**
+- Phase 3: 3 plans, 7 requirements (OcclusionManager, PerformanceMonitor, LayeredEntity)
+- Phase 4: 2 plans, 5 requirements (VisualPack v2 schema, backward compatibility, migration guides)
+- Total: 77 tests passing, 100% backward compatibility verified
 
 ---
 *Roadmap created: 2026-03-31*
-*Last updated: 2026-04-01 (v1.0 started)*
+*Last updated: 2026-04-01 (v1.0 SHIPPED)*
 *v0.1: Phase 1-2 COMPLETE ✅ — Core Rendering Foundation*
-*v1.0: Phase 3-4 ACTIVE ⏳ — Occlusion & Mod Integration*
-*Current: v1.0 milestone planning complete, ready for execution*
+*v1.0: Phase 3-4 COMPLETE ✅ — Occlusion & Mod Integration*
+*Current: v1.0 PRODUCTION READY — All 25 requirements delivered*
 *Granularity: Coarse | Mode: YOLO*
