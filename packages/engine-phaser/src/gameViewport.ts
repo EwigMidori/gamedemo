@@ -3,7 +3,9 @@ import type {
   RuntimeCommandInput,
   RuntimePointerTile,
   RuntimeSessionState,
-  StructureDef
+  StructureDef,
+  OccludableEntity,
+  OcclusionManager
 } from "@gamedemo/engine-core";
 import {
   ANCHOR_BOTTOM_CENTER,
@@ -12,10 +14,12 @@ import {
   calculateDepthBaseOffset,
   DEFAULT_DEPTH_BASE_OFFSET,
   worldX,
-  worldY
+  worldY,
+  classifyHeight,
+  shouldOccludePlayer
 } from "@gamedemo/engine-core";
-import type { EntitySprite } from "@gamedemo/engine-core";
 import type { EntityType } from "@gamedemo/engine-core";
+import { OcclusionAnimator } from "./occlusionAnimator";
 import type { RuntimeSession } from "@gamedemo/engine-runtime";
 import { RuntimeAssetLibrary } from "./runtimeAssets";
 import { RuntimeContentIndex } from "./runtimeContentIndex";
@@ -53,8 +57,14 @@ export class GameViewport {
   
   // Unified entity management for pseudo-3D rendering
   private readonly depthSorter = new Pseudo3DDepthSorter();
-  private readonly entitySprites = new Map<string, EntitySprite>();
+  private readonly entitySprites = new Map<string, OccludableEntity>();
   private readonly entityShadows = new Map<string, EntityShadow>();
+  
+  // Occlusion system
+  private readonly occlusionManager: OcclusionManager;
+  private readonly occlusionAnimator: OcclusionAnimator;
+  private occlusionCheckInterval = 2; // Check every 2 frames
+  private frameCount = 0;
   
   // Entity sprite pool (reusable sprites)
   private readonly spritePool: Phaser.GameObjects.Image[] = [];
@@ -78,6 +88,19 @@ export class GameViewport {
     private readonly options: GameViewportOptions
   ) {
     this.camera = new ObliqueCamera(scene);
+    
+    // Initialize occlusion system
+    const { OcclusionManager } = require("@gamedemo/engine-core");
+    this.occlusionManager = new OcclusionManager({
+      checkInterval: this.occlusionCheckInterval,
+      targetAlpha: 0.4,
+      fadeDurationMs: 250,
+      debug: false
+    });
+    this.occlusionAnimator = new OcclusionAnimator(scene, {
+      fadeDurationMs: 250,
+      targetAlpha: 0.4
+    });
     // Initial depth values will be overridden in renderPlayer based on world bounds
     this.playerShadow = this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4);
     this.playerSprite = this.scene.add
@@ -163,7 +186,7 @@ export class GameViewport {
     contentId: string,
     frame: number,
     tint?: number
-  ): EntitySprite {
+  ): OccludableEntity {
     const visualPack = this.getVisualPack(contentId);
     const entityX = x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
     // Position object bottom at tile bottom, renderHeight extends upward only
@@ -182,8 +205,12 @@ export class GameViewport {
     });
     sprite.setDepth(depth);
 
-    // Create entity record
-    const entity: EntitySprite = {
+    // Determine height classification and occlusion
+    const heightClassification = visualPack.heightClassification ?? classifyHeight(visualPack.renderHeight);
+    const canOccludePlayer = shouldOccludePlayer(heightClassification, visualPack.canOccludePlayer);
+
+    // Create occludable entity record
+    const entity: OccludableEntity = {
       id,
       type,
       x: worldX(entityX),
@@ -192,7 +219,11 @@ export class GameViewport {
       lastCalculatedDepth: depth,
       needsDepthUpdate: false,
       contentId,
-      renderHeight: visualPack.renderHeight
+      renderHeight: visualPack.renderHeight,
+      canOccludePlayer,
+      heightClassification,
+      footprint: visualPack.footprint ?? { widthTiles: 1, depthTiles: 1 },
+      occlusionAlpha: visualPack.occlusionAlpha
     };
 
     // Register with depth sorter
@@ -200,10 +231,10 @@ export class GameViewport {
     this.entitySprites.set(id, entity);
 
     // Create shadow for non-flat objects
-    if (visualPack.heightClassification !== "flat") {
+    if (heightClassification !== "flat") {
       const shadow = createEntityShadow(
         this.scene,
-        visualPack.heightClassification,
+        heightClassification,
         depth
       );
       if (shadow) {
@@ -482,6 +513,22 @@ export class GameViewport {
       if (shadow && entity.lastCalculatedDepth !== undefined) {
         updateShadowDepth(shadow, entity.lastCalculatedDepth);
       }
+    }
+
+    // Perform occlusion check every N frames
+    this.frameCount++;
+    if (this.frameCount % this.occlusionCheckInterval === 0) {
+      const playerX = snapshot.player.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
+      const playerY = (snapshot.player.y + 1) * RuntimeAssetLibrary.tileSize;
+      
+      const occlusionResult = this.occlusionManager.checkOcclusion(
+        worldX(playerX),
+        worldY(playerY),
+        this.entitySprites
+      );
+      
+      // Apply alpha animations based on occlusion state
+      this.occlusionAnimator.updateOcclusionState(occlusionResult.occludedEntities, this.entitySprites);
     }
 
     // Hide entities that are no longer visible
