@@ -558,10 +558,12 @@ export {
   // Constants
   TYPE_PRIORITY,
   DEPTH_POSITION_MULTIPLIER,
+  DEFAULT_DEPTH_BASE_OFFSET,
   // Functions
   calculateDepth,
   calculateEntityDepth,
   calculateBatchDepths,
+  calculateDepthBaseOffset,
   // Class
   Pseudo3DDepthSorter,
 } from "./depthSorter";

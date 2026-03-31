@@ -62,6 +62,35 @@ export const TYPE_PRIORITY: Record<EntityType, number> = {
  */
 export const DEPTH_POSITION_MULTIPLIER = 1000;
 
+/**
+ * Calculate the minimum depth offset needed for a given world Y range.
+ * 
+ * This ensures all depth values are positive regardless of world coordinates.
+ * The offset is calculated as: -minWorldY * MULTIPLIER + safetyMargin
+ * 
+ * @param minWorldY - Minimum (most negative) Y coordinate in the world (in pixels)
+ * @param safetyMargin - Additional margin for safety (default: 100,000)
+ * @returns The base offset needed to keep all depths positive
+ */
+export function calculateDepthBaseOffset(
+  minWorldY: number,
+  safetyMargin: number = 100000
+): number {
+  // If minWorldY is positive, we don't need much offset
+  // If minWorldY is negative, we need enough offset to compensate
+  const minDepth = minWorldY * DEPTH_POSITION_MULTIPLIER;
+  
+  // We need offset > -minDepth to ensure all depths are positive
+  // Add safety margin to handle edge cases and future expansion
+  return Math.max(0, -minDepth) + safetyMargin;
+}
+
+/**
+ * Default base offset for worlds without explicit bounds.
+ * This is a conservative value that works for most reasonable world sizes.
+ */
+export const DEFAULT_DEPTH_BASE_OFFSET = 20000000;
+
 // =============================================================================
 // Entity Sprite Interface
 // =============================================================================
@@ -109,9 +138,12 @@ export interface EntitySprite {
 export interface DepthCalculationOptions {
   /** Custom type priority override */
   typePriority?: number;
-  
+
   /** Additional depth offset for special cases */
   depthOffset?: number;
+
+  /** Base offset to ensure positive depths (defaults to DEFAULT_DEPTH_BASE_OFFSET) */
+  baseOffset?: number;
 }
 
 // =============================================================================
@@ -119,32 +151,41 @@ export interface DepthCalculationOptions {
 // =============================================================================
 
 /**
- * Calculate pseudo-3D depth value using Y+height algorithm.
- * 
- * Formula: depth = (y + renderHeight) * MULTIPLIER + typePriority
- * 
+ * Calculate pseudo-3D depth value using Y-based sorting (Stardew Valley style).
+ *
+ * Formula: depth = y * MULTIPLIER + typePriority
+ *
  * This ensures:
  * - Objects with higher Y (lower on screen) render on top
- * - Tall objects properly occlude smaller objects behind them
  * - Type priority prevents z-fighting for overlapping objects at same depth
- * 
+ * - Proper occlusion: objects "above" (smaller Y) are behind, objects "below" (larger Y) are in front
+ *
+ * Note: renderHeight is NOT used for depth calculation. It only affects visual
+ * presentation (sprite positioning and canOccludePlayer logic), not sorting order.
+ * This matches Stardew Valley behavior where depth is purely based on Y position.
+ *
  * @param y - World Y position (pixels)
- * @param renderHeight - Visual height in pixels (from VisualPackMetadata)
+ * @param renderHeight - Visual height in pixels (not used for depth calculation)
  * @param type - Entity type for priority calculation
  * @param options - Optional overrides
  * @returns Calculated depth value (higher = rendered on top)
  */
 export function calculateDepth(
   y: number,
-  renderHeight: number,
+  _renderHeight: number,
   type: EntityType,
   options?: DepthCalculationOptions
 ): number {
   const typePriority = options?.typePriority ?? TYPE_PRIORITY[type];
-  const baseDepth = y + renderHeight;
   const depthOffset = options?.depthOffset ?? 0;
-  
-  return baseDepth * DEPTH_POSITION_MULTIPLIER + typePriority + depthOffset;
+  const baseOffset = options?.baseOffset ?? DEFAULT_DEPTH_BASE_OFFSET;
+
+  // Depth is based purely on Y position (ground/anchor position)
+  // This creates correct pseudo-3D occlusion where:
+  // - Objects with smaller Y (screen-up/"behind") render first
+  // - Objects with larger Y (screen-down/"in front") render last
+  // Add base offset to ensure all depths are positive
+  return baseOffset + y * DEPTH_POSITION_MULTIPLIER + typePriority + depthOffset;
 }
 
 /**
@@ -213,13 +254,26 @@ export function calculateBatchDepths(
 export class Pseudo3DDepthSorter {
   /** Entity registry keyed by entity ID */
   private readonly entities = new Map<string, EntitySprite>();
-  
+
   /** Cached sorted order (invalidated when depths change) */
   private sortedCache: EntitySprite[] | null = null;
-  
+
   /** Statistics for performance monitoring */
   private updateCount = 0;
   private skipCount = 0;
+
+  /** Base offset for depth calculation to ensure positive depths */
+  private baseOffset: number = DEFAULT_DEPTH_BASE_OFFSET;
+
+  /**
+   * Set the base offset for depth calculations.
+   * Should be called when world bounds are known.
+   */
+  setBaseOffset(offset: number): void {
+    this.baseOffset = offset;
+    // Mark all entities as dirty since offset changed
+    this.markAllDirty();
+  }
   
   /**
    * Register a new entity for depth tracking.
@@ -285,7 +339,7 @@ export class Pseudo3DDepthSorter {
     
     for (const entity of this.entities.values()) {
       if (entity.needsDepthUpdate) {
-        calculateEntityDepth(entity);
+        calculateEntityDepth(entity, { baseOffset: this.baseOffset });
         updated++;
         this.updateCount++;
       } else {

@@ -9,6 +9,8 @@ import {
   ANCHOR_BOTTOM_CENTER,
   Pseudo3DDepthSorter,
   calculateDepth,
+  calculateDepthBaseOffset,
+  DEFAULT_DEPTH_BASE_OFFSET,
   worldX,
   worldY
 } from "@gamedemo/engine-core";
@@ -68,6 +70,7 @@ export class GameViewport {
   private lastFacingFrame = 0;
   private previousLogicalPosition: { x: number; y: number } | null = null;
   private renderedTerrainCount = 0;
+  private depthBaseOffset = DEFAULT_DEPTH_BASE_OFFSET;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -75,15 +78,14 @@ export class GameViewport {
     private readonly options: GameViewportOptions
   ) {
     this.camera = new ObliqueCamera(scene);
-    this.playerShadow = this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4).setDepth(5);
+    // Initial depth values will be overridden in renderPlayer based on world bounds
+    this.playerShadow = this.scene.add.ellipse(0, 0, 12, 5, 0x000000, 0.4);
     this.playerSprite = this.scene.add
       .sprite(0, 0, RuntimeAssetLibrary.pawnKey, 0)
       .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
-      .setDepth(7)
       .setScale(1.15)
       .setTint(0xf6e7c8);
     this.cursorHighlight = this.scene.add.rectangle(0, 0, 16, 16)
-      .setDepth(10)
       .setStrokeStyle(1, 0xf6f2d7)
       .setVisible(false);
     const ring = this.scene.add.circle(0, 0, 4).setStrokeStyle(2, 0xf3c96b, 1);
@@ -164,7 +166,8 @@ export class GameViewport {
   ): EntitySprite {
     const visualPack = this.getVisualPack(contentId);
     const entityX = x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
-    const entityY = y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
+    // Position object bottom at tile bottom, renderHeight extends upward only
+    const entityY = (y + 1) * RuntimeAssetLibrary.tileSize;
 
     // Acquire or create sprite
     const sprite = this.acquireSprite()
@@ -173,8 +176,10 @@ export class GameViewport {
       .setFrame(frame)
       .setTint(tint ?? RuntimeTheme.objectTint);
 
-    // Calculate initial depth
-    const depth = calculateDepth(entityY, visualPack.renderHeight, type);
+    // Calculate initial depth with dynamic base offset
+    const depth = calculateDepth(entityY, visualPack.renderHeight, type, {
+      baseOffset: this.depthBaseOffset
+    });
     sprite.setDepth(depth);
 
     // Create entity record
@@ -251,7 +256,7 @@ export class GameViewport {
     }
 
     const entityX = x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
-    const entityY = y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
+    const entityY = (y + 1) * RuntimeAssetLibrary.tileSize;
 
     // Update position
     entity.x = worldX(entityX);
@@ -281,6 +286,11 @@ export class GameViewport {
   create(): void {
     const world = this.session.snapshot().world;
     this.createAnimations();
+
+    // Calculate depth base offset based on world bounds to ensure all depths are positive
+    const minWorldYPixels = world.originY * RuntimeAssetLibrary.tileSize;
+    this.depthBaseOffset = calculateDepthBaseOffset(minWorldYPixels);
+    this.depthSorter.setBaseOffset(this.depthBaseOffset);
 
     const bounds = createCameraBoundsFromWorld(
       world.originX,
@@ -507,13 +517,17 @@ export class GameViewport {
       const tile = world.tiles[index];
       const terrain = this.options.contentIndex.terrain(tile.terrainId);
       const key = `${tile.x},${tile.y}`;
+      // Terrain always renders at a fixed depth below all dynamic entities
+      // It uses the tile's Y to determine which terrain is on top of which (for overlapping)
+      // but stays below all players, resources, structures, etc.
+      const terrainDepth = this.depthBaseOffset - 10000 + tile.y * 100;
       const sprite = this.scene.add.image(
         tile.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
         tile.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
         RuntimeAssetLibrary.worldKey,
         terrain?.frame ?? RuntimeTheme.terrainFrame(tile.terrainId)
       )
-        .setDepth(0)
+        .setDepth(terrainDepth)
         .setTint(terrain?.tint ?? RuntimeTheme.terrainTint(tile.terrainId));
       this.terrainSprites.set(key, sprite);
     }
@@ -535,9 +549,13 @@ export class GameViewport {
         continue;
       }
       visibleIds.add(resource.id);
+      const worldY = (resource.y + 1) * RuntimeAssetLibrary.tileSize;
+      const resourceDepth = calculateDepth(worldY, 0, "resource", {
+        baseOffset: this.depthBaseOffset
+      });
       const sprite = this.resourceSprites.get(resource.id)
         ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0)
-          .setDepth(2)
+          .setDepth(resourceDepth)
           .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
       const resourceDef = this.options.contentIndex.resource(resource.resourceId);
       const frame = isRespawningTree
@@ -547,7 +565,7 @@ export class GameViewport {
         .setVisible(true)
         .setPosition(
           resource.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          resource.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5
+          (resource.y + 1) * RuntimeAssetLibrary.tileSize
         )
         .setFrame(frame)
         .setTint(isRespawningTree ? 0xbfa57f : RuntimeTheme.objectTint);
@@ -567,15 +585,19 @@ export class GameViewport {
         continue;
       }
       visibleIds.add(planted.id);
+      const worldY = (planted.y + 1) * RuntimeAssetLibrary.tileSize;
+      const plantedDepth = calculateDepth(worldY, 0, "planted", {
+        baseOffset: this.depthBaseOffset
+      });
       const sprite = this.plantedSprites.get(planted.id)
         ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 32)
-          .setDepth(2)
+          .setDepth(plantedDepth)
           .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
       sprite
         .setVisible(true)
         .setPosition(
           planted.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          planted.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5
+          (planted.y + 1) * RuntimeAssetLibrary.tileSize
         )
         .setFrame(this.resolveSaplingFrame(planted.growAt - snapshot.timeSeconds))
         .setTint(0xbfa57f);
@@ -605,9 +627,13 @@ export class GameViewport {
         continue;
       }
       visibleIds.add(structure.id);
+      const worldY = (structure.y + 1) * RuntimeAssetLibrary.tileSize;
+      const structureDepth = calculateDepth(worldY, 0, "structure", {
+        baseOffset: this.depthBaseOffset
+      });
       const sprite = this.structureSprites.get(structure.id)
         ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0)
-          .setDepth(3)
+          .setDepth(structureDepth)
           .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
       const definition = this.options.contentIndex.structure(structure.structureId);
       const stage = definition?.growableStages?.length && structure.growth !== null && structure.growth !== undefined
@@ -628,7 +654,7 @@ export class GameViewport {
         .setVisible(true)
         .setPosition(
           structure.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          structure.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5
+          (structure.y + 1) * RuntimeAssetLibrary.tileSize
         )
         .setFrame(frame)
         .setTint(tint);
@@ -648,16 +674,20 @@ export class GameViewport {
         continue;
       }
       visibleIds.add(drop.id);
+      const worldY = (drop.y + 1) * RuntimeAssetLibrary.tileSize;
+      const dropDepth = calculateDepth(worldY, 0, "drop", {
+        baseOffset: this.depthBaseOffset
+      });
       const sprite = this.dropSprites.get(drop.id)
         ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.uiKey, 0)
-          .setDepth(4)
+          .setDepth(dropDepth)
           .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
       const bob = Math.sin((snapshot.timeSeconds - drop.spawnedAt) * 4.2) * 2;
       sprite
         .setVisible(true)
         .setPosition(
           drop.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-          drop.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5 - 4 + bob
+          (drop.y + 1) * RuntimeAssetLibrary.tileSize - 4 + bob
         )
         .setFrame(RuntimeTheme.itemFrameFor(drop.itemId));
       this.dropSprites.set(drop.id, sprite);
@@ -672,16 +702,18 @@ export class GameViewport {
   private renderPlayer(snapshot: RuntimeSessionState): void {
     const position = this.resolveRenderedPlayerPosition(snapshot);
     const worldX = position.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
-    const worldY = position.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
+    const worldY = (position.y + 1) * RuntimeAssetLibrary.tileSize;
     const frame = this.resolveFacingFrame(snapshot);
     
     // Calculate dynamic depth for player using Y+height algorithm
     // Player has renderHeight of 16 (low classification)
-    const playerDepth = calculateDepth(worldY, 16, "player");
+    const playerDepth = calculateDepth(worldY, 16, "player", {
+      baseOffset: this.depthBaseOffset
+    });
     this.playerSprite.setDepth(playerDepth);
     
-    // Position shadow at player base with proper offset (shadow is 5px tall, center it)
-    this.playerShadow.setPosition(worldX, worldY + 2.5);
+    // Position shadow at player base (ellipse origin is center, so worldY puts center at base)
+    this.playerShadow.setPosition(worldX, worldY);
     this.playerShadow.setDepth(playerDepth - 1); // Shadow below player
     
     this.playerSprite.setPosition(worldX, worldY);
