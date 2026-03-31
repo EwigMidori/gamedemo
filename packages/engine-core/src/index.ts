@@ -619,3 +619,15 @@ export {
   // Class
   Pseudo3DDepthSorter,
 } from "./depthSorter";
+
+// =============================================================================
+// Frustum Culling Exports
+// =============================================================================
+
+export {
+  FrustumCuller,
+  createFrustumBoundsFromCamera,
+  createFrustumBoundsFromTiles,
+  type FrustumBounds,
+  type CullingResult,
+} from "./frustumCuller";
