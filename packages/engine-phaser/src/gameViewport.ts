@@ -535,6 +535,22 @@ export class GameViewport {
       bottom: centerY + viewRadius
     };
     const tileSize = RuntimeAssetLibrary.tileSize;
+    
+    // Debug: Log frustum bounds periodically
+    if (this.frameCount % 60 === 0) {
+      console.log('[Frustum Debug]', {
+        center: { x: centerX, y: centerY },
+        radius: viewRadius,
+        bounds: frustumBounds,
+        camera: {
+          x: camera.worldView.x,
+          y: camera.worldView.y,
+          width: camera.worldView.width,
+          height: camera.worldView.height,
+          zoom: camera.zoom
+        }
+      });
+    }
 
     // Process resources with frustum culling
     for (const resource of snapshot.resources) {
