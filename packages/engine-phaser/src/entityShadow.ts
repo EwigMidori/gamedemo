@@ -128,7 +128,10 @@ export function updateShadowPosition(
   worldY: number
 ): void {
   const offsetY = shadow.size.offsetY ?? 0;
-  shadow.sprite.setPosition(worldX, worldY + offsetY);
+  // Position shadow so its top edge touches the entity's base
+  // Ellipse is centered, so we add half the height to move it down
+  const verticalOffset = shadow.size.height * 0.5;
+  shadow.sprite.setPosition(worldX, worldY + offsetY + verticalOffset);
 }
 
 /**

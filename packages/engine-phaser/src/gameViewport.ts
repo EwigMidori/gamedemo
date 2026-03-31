@@ -674,7 +674,16 @@ export class GameViewport {
     const worldX = position.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
     const worldY = position.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5;
     const frame = this.resolveFacingFrame(snapshot);
-    this.playerShadow.setPosition(worldX, worldY + 2);
+    
+    // Calculate dynamic depth for player using Y+height algorithm
+    // Player has renderHeight of 16 (low classification)
+    const playerDepth = calculateDepth(worldY, 16, "player");
+    this.playerSprite.setDepth(playerDepth);
+    
+    // Position shadow at player base with proper offset (shadow is 5px tall, center it)
+    this.playerShadow.setPosition(worldX, worldY + 2.5);
+    this.playerShadow.setDepth(playerDepth - 1); // Shadow below player
+    
     this.playerSprite.setPosition(worldX, worldY);
     if (snapshot.player.motion) {
       this.playerSprite.anims.play(this.animationKeyForFrame(frame), true);

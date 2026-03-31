@@ -75,7 +75,8 @@ export class ObliqueCamera {
   setup(bounds?: CameraBounds): void {
     const camera = this.scene.cameras.main;
 
-    camera.setAngle(this.config.angle);
+    // Note: We don't rotate the camera angle - oblique projection is achieved
+    // through art/assets, not camera rotation. This keeps tiles axis-aligned.
     camera.setZoom(this.config.zoom);
 
     if (bounds) {
