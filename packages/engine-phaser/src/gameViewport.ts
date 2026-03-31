@@ -874,10 +874,18 @@ export class GameViewport {
       const resourceDepth = calculateDepth(worldY, 0, "resource", {
         baseOffset: this.depthBaseOffset
       });
-      const sprite = this.resourceSprites.get(resource.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0)
+      let sprite = this.resourceSprites.get(resource.id);
+      if (!sprite) {
+        sprite = this.scene.add.image(
+          resource.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
+          (resource.y + 1) * RuntimeAssetLibrary.tileSize,
+          RuntimeAssetLibrary.worldKey,
+          0
+        )
           .setDepth(resourceDepth)
-          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
+          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
+          .setVisible(false);
+      }
       const resourceDef = this.options.contentIndex.resource(resource.resourceId);
       const frame = isRespawningTree
         ? this.resolveRespawningTreeFrame(resource.respawnAt ?? snapshot.timeSeconds, snapshot.timeSeconds)
@@ -910,10 +918,19 @@ export class GameViewport {
       const plantedDepth = calculateDepth(worldY, 0, "planted", {
         baseOffset: this.depthBaseOffset
       });
-      const sprite = this.plantedSprites.get(planted.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 32)
+      let sprite = this.plantedSprites.get(planted.id);
+      if (!sprite) {
+        // Create at correct position immediately to avoid showing at (0,0)
+        sprite = this.scene.add.image(
+          planted.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
+          (planted.y + 1) * RuntimeAssetLibrary.tileSize,
+          RuntimeAssetLibrary.worldKey,
+          32
+        )
           .setDepth(plantedDepth)
-          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
+          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
+          .setVisible(false); // Start invisible
+      }
       sprite
         .setVisible(true)
         .setPosition(
@@ -952,10 +969,18 @@ export class GameViewport {
       const structureDepth = calculateDepth(worldY, 0, "structure", {
         baseOffset: this.depthBaseOffset
       });
-      const sprite = this.structureSprites.get(structure.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0)
+      let sprite = this.structureSprites.get(structure.id);
+      if (!sprite) {
+        sprite = this.scene.add.image(
+          structure.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
+          (structure.y + 1) * RuntimeAssetLibrary.tileSize,
+          RuntimeAssetLibrary.worldKey,
+          0
+        )
           .setDepth(structureDepth)
-          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
+          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
+          .setVisible(false);
+      }
       const definition = this.options.contentIndex.structure(structure.structureId);
       const stage = definition?.growableStages?.length && structure.growth !== null && structure.growth !== undefined
         ? this.resolveGrowthStage(definition, structure.growth)
@@ -999,10 +1024,19 @@ export class GameViewport {
       const dropDepth = calculateDepth(worldY, 0, "drop", {
         baseOffset: this.depthBaseOffset
       });
-      const sprite = this.dropSprites.get(drop.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.uiKey, 0)
+      let sprite = this.dropSprites.get(drop.id);
+      if (!sprite) {
+        const bob = Math.sin((snapshot.timeSeconds - drop.spawnedAt) * 4.2) * 2;
+        sprite = this.scene.add.image(
+          drop.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
+          (drop.y + 1) * RuntimeAssetLibrary.tileSize - 4 + bob,
+          RuntimeAssetLibrary.uiKey,
+          0
+        )
           .setDepth(dropDepth)
-          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y);
+          .setOrigin(ANCHOR_BOTTOM_CENTER.x, ANCHOR_BOTTOM_CENTER.y)
+          .setVisible(false);
+      }
       const bob = Math.sin((snapshot.timeSeconds - drop.spawnedAt) * 4.2) * 2;
       sprite
         .setVisible(true)
