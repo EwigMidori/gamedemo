@@ -14,20 +14,21 @@ function serialize(
 
 function restore(
   runtime: AssembledRuntime,
-  envelope: GameSaveEnvelope
+  envelope: GameSaveEnvelope | unknown
 ): RuntimeSession {
-  if (envelope.version !== SAVE_SCHEMA_VERSION) {
-    throw new Error(`Unsupported save schema version: ${envelope.version}`);
+  const parsed = SaveSchema.parseEnvelope(envelope);
+  if (parsed.version !== SAVE_SCHEMA_VERSION) {
+    throw new Error(`Unsupported save schema version: ${parsed.version}`);
   }
 
   const expectedProfile = JSON.stringify(runtime.profile.mods);
-  const actualProfile = JSON.stringify(envelope.profile.mods);
+  const actualProfile = JSON.stringify(parsed.profile.mods);
 
   if (expectedProfile !== actualProfile) {
     throw new Error("Save profile does not match the active mod profile.");
   }
 
-  return runtime.createSession(envelope.session);
+  return runtime.createSession(parsed.session);
 }
 
 export const RuntimeSaves = {

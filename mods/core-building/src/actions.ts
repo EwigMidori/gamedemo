@@ -1,27 +1,45 @@
-import type { RuntimeAction, RuntimeActionResult } from "@gamedemo/engine-core";
+import { RuntimePayload, type RuntimeAction, type RuntimeActionResult } from "@gamedemo/engine-core";
+import typia from "typia";
 import { PlayerDomain } from "@gamedemo/mod-core-player";
 import { BuildingBreakDomain } from "./breakingDomain";
 import { BuildingDomain } from "./buildingDomain";
+
+const validatePlaceSelectedStructurePayload = typia.createValidate<{
+  selectedSlot?: number | null;
+  x?: number;
+  y?: number;
+}>();
+const validateStructureIdPayload = typia.createValidate<{
+  structureId: string;
+}>();
+const validateStoreSelectedItemPayload = typia.createValidate<{
+  structureId: string;
+  selectedSlot?: number | null;
+}>();
+const validateBreakStructurePayload = typia.createValidate<{
+  structureId: string;
+  selectedSlot?: number | null;
+}>();
 
 const placeSelectedStructure: RuntimeAction = {
   id: "building:place-selected-structure",
   label: "Place selected structure",
   execute({ state, content, command }): RuntimeActionResult {
     const model = BuildingDomain.createModel();
-    const selectedSlot = typeof command?.payload?.selectedSlot === "number"
-      ? Math.floor(command.payload.selectedSlot)
-      : null;
+    const parsed = RuntimePayload.parse(command?.payload ?? {}, validatePlaceSelectedStructurePayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("building:place-selected-structure") };
+    }
+    const selectedSlot = parsed.data.selectedSlot === undefined || parsed.data.selectedSlot === null
+      ? null
+      : Math.floor(parsed.data.selectedSlot);
     const structure = model.selectedPlaceableStructure(content, state, selectedSlot);
     if (!structure) {
       return { ok: false, message: "Select a placeable item first." };
     }
     const playerTile = PlayerDomain.currentTile(state.player);
-    const targetX = typeof command?.payload?.x === "number"
-      ? Math.floor(command.payload.x)
-      : playerTile.x + 1;
-    const targetY = typeof command?.payload?.y === "number"
-      ? Math.floor(command.payload.y)
-      : playerTile.y;
+    const targetX = parsed.data.x === undefined ? playerTile.x + 1 : Math.floor(parsed.data.x);
+    const targetY = parsed.data.y === undefined ? playerTile.y : Math.floor(parsed.data.y);
     const placement = model.canPlaceStructureAt(content, state, structure, targetX, targetY);
     if (!placement.ok) {
       return { ok: false, message: placement.reason ?? "Cannot place the structure there." };
@@ -36,9 +54,11 @@ const dismantleStructure: RuntimeAction = {
   label: "Dismantle structure",
   execute({ state, content, command }): RuntimeActionResult {
     const model = BuildingDomain.createModel();
-    const target = typeof command?.payload?.structureId === "string"
-      ? model.getStructureById(state, command.payload.structureId)
-      : null;
+    const parsed = RuntimePayload.parse(command?.payload, validateStructureIdPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("building:dismantle-structure") };
+    }
+    const target = model.getStructureById(state, parsed.data.structureId);
     if (!target) {
       return { ok: false, message: "No structure selected to dismantle." };
     }
@@ -55,9 +75,11 @@ const harvestStructure: RuntimeAction = {
   label: "Harvest structure",
   execute({ state, content, command }): RuntimeActionResult {
     const model = BuildingDomain.createModel();
-    const target = typeof command?.payload?.structureId === "string"
-      ? model.getStructureById(state, command.payload.structureId)
-      : null;
+    const parsed = RuntimePayload.parse(command?.payload, validateStructureIdPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("building:harvest-structure") };
+    }
+    const target = model.getStructureById(state, parsed.data.structureId);
     if (!target) {
       return { ok: false, message: "No harvestable structure selected." };
     }
@@ -73,12 +95,14 @@ const storeSelectedItem: RuntimeAction = {
   label: "Store selected item",
   execute({ state, command }): RuntimeActionResult {
     const model = BuildingDomain.createModel();
-    const structure = typeof command?.payload?.structureId === "string"
-      ? model.getStructureById(state, command.payload.structureId)
-      : null;
-    const selectedSlot = typeof command?.payload?.selectedSlot === "number"
-      ? Math.floor(command.payload.selectedSlot)
-      : null;
+    const parsed = RuntimePayload.parse(command?.payload, validateStoreSelectedItemPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("building:store-selected-item") };
+    }
+    const structure = model.getStructureById(state, parsed.data.structureId);
+    const selectedSlot = parsed.data.selectedSlot === undefined || parsed.data.selectedSlot === null
+      ? null
+      : Math.floor(parsed.data.selectedSlot);
     if (!structure) {
       return { ok: false, message: "No chest selected." };
     }
@@ -94,9 +118,11 @@ const takeFromStorage: RuntimeAction = {
   label: "Take from storage",
   execute({ state, content, command }): RuntimeActionResult {
     const model = BuildingDomain.createModel();
-    const structure = typeof command?.payload?.structureId === "string"
-      ? model.getStructureById(state, command.payload.structureId)
-      : null;
+    const parsed = RuntimePayload.parse(command?.payload, validateStructureIdPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("building:take-from-storage") };
+    }
+    const structure = model.getStructureById(state, parsed.data.structureId);
     if (!structure) {
       return { ok: false, message: "No chest selected." };
     }
@@ -111,16 +137,17 @@ const breakStructure: RuntimeAction = {
   id: "building:break-structure",
   label: "Break structure",
   execute({ state, content, command }): RuntimeActionResult {
-    const structureId = typeof command?.payload?.structureId === "string"
-      ? command.payload.structureId
-      : "";
-    const selectedSlot = typeof command?.payload?.selectedSlot === "number"
-      ? Math.floor(command.payload.selectedSlot)
-      : null;
+    const parsed = RuntimePayload.parse(command?.payload, validateBreakStructurePayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("building:break-structure") };
+    }
+    const selectedSlot = parsed.data.selectedSlot === undefined || parsed.data.selectedSlot === null
+      ? null
+      : Math.floor(parsed.data.selectedSlot);
     return BuildingBreakDomain.createModel().breakStructure(
       content,
       state,
-      structureId,
+      parsed.data.structureId,
       selectedSlot
     );
   }

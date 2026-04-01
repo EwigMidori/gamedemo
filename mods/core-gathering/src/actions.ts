@@ -1,15 +1,33 @@
-import type { RuntimeAction } from "@gamedemo/engine-core";
+import { RuntimePayload, type RuntimeAction } from "@gamedemo/engine-core";
+import typia from "typia";
 import { GatheringBreakDomain } from "./breakingDomain";
 import { GatheringDomain } from "./gatheringDomain";
+
+const validateGatherNearestPayload = typia.createValidate<{
+  resourceNodeId?: string;
+}>();
+const validatePlantSelectedItemPayload = typia.createValidate<{
+  selectedSlot?: number | null;
+  x?: number;
+  y?: number;
+}>();
+const validateBreakResourcePayload = typia.createValidate<{
+  resourceNodeId: string;
+  selectedSlot?: number | null;
+}>();
 
 const gatherNearest: RuntimeAction = {
   id: "gathering:gather-nearest",
   label: "Gather nearest",
   execute({ state, content, command }) {
-    const target =
-      typeof command?.payload?.resourceNodeId === "string"
-        ? GatheringDomain.getResourceById(state, command.payload.resourceNodeId)
-        : GatheringDomain.nearestAvailableResource(state);
+    const parsed = RuntimePayload.parse(command?.payload ?? {}, validateGatherNearestPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("gathering:gather-nearest") };
+    }
+    const { resourceNodeId } = parsed.data;
+    const target = resourceNodeId
+      ? GatheringDomain.getResourceById(state, resourceNodeId)
+      : GatheringDomain.nearestAvailableResource(state);
     if (!target) {
       return {
         ok: false,
@@ -62,15 +80,15 @@ const plantSelectedItem: RuntimeAction = {
   id: "gathering:plant-selected-item",
   label: "Plant selected item",
   execute({ state, content, command }) {
-    const selectedSlot = typeof command?.payload?.selectedSlot === "number"
-      ? Math.floor(command.payload.selectedSlot)
-      : null;
-    const x = typeof command?.payload?.x === "number"
-      ? Math.floor(command.payload.x)
-      : state.player.x;
-    const y = typeof command?.payload?.y === "number"
-      ? Math.floor(command.payload.y)
-      : state.player.y;
+    const parsed = RuntimePayload.parse(command?.payload ?? {}, validatePlantSelectedItemPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("gathering:plant-selected-item") };
+    }
+    const selectedSlot = parsed.data.selectedSlot === undefined || parsed.data.selectedSlot === null
+      ? null
+      : Math.floor(parsed.data.selectedSlot);
+    const x = parsed.data.x === undefined ? state.player.x : Math.floor(parsed.data.x);
+    const y = parsed.data.y === undefined ? state.player.y : Math.floor(parsed.data.y);
     const message = GatheringDomain.plantSelectedItem(content, state, selectedSlot, x, y);
     return {
       ok: !message.toLowerCase().startsWith("cannot") &&
@@ -87,12 +105,14 @@ const breakResource: RuntimeAction = {
   id: "gathering:break-resource",
   label: "Break resource",
   execute({ state, content, command }) {
-    const resourceNodeId = typeof command?.payload?.resourceNodeId === "string"
-      ? command.payload.resourceNodeId
-      : "";
-    const selectedSlot = typeof command?.payload?.selectedSlot === "number"
-      ? Math.floor(command.payload.selectedSlot)
-      : null;
+    const parsed = RuntimePayload.parse(command?.payload, validateBreakResourcePayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("gathering:break-resource") };
+    }
+    const resourceNodeId = parsed.data.resourceNodeId;
+    const selectedSlot = parsed.data.selectedSlot === undefined || parsed.data.selectedSlot === null
+      ? null
+      : Math.floor(parsed.data.selectedSlot);
     return GatheringBreakDomain.createModel().breakResource(
       content,
       state,

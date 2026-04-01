@@ -1,14 +1,16 @@
 import type {
-  ResolvedCommand,
-  RuntimeAction,
-  RuntimeCombinedInteraction,
+  AnyResolvedCommand,
+  AnyRuntimeAction,
+  AnyRuntimeCombinedInteraction,
+  AnyRuntimeInventoryInteraction,
+  AnyRuntimeWorldObjectInteraction,
   RuntimeCombinedInteractionProvider,
   RuntimeCommand,
   RuntimeCommandContext,
   RuntimeCommandInput,
   RuntimeCommandResolver,
+  RuntimeDispatchedCommand,
   RuntimeCommandTrigger,
-  RuntimeInventoryInteraction,
   RuntimeInventoryInteractionProvider,
   RuntimeInventorySelectionProvider,
   RuntimeInventorySlotDescriptor,
@@ -17,7 +19,6 @@ import type {
   RuntimeSystem,
   RuntimeUiPanel,
   RuntimeWorldObjectDescriptor,
-  RuntimeWorldObjectInteraction,
   RuntimeWorldObjectInteractionProvider,
   RuntimeWorldObjectProvider,
   WorldBlueprint,
@@ -42,7 +43,7 @@ interface RuntimeSessionFactoryInput {
     terrains: Array<{ id: string }>;
   };
   systems: RuntimeSystem[];
-  actions: RuntimeAction[];
+  actions: AnyRuntimeAction[];
   commands: RuntimeCommand[];
   worldgen: WorldgenStage[];
   uiPanels: RuntimeUiPanel[];
@@ -160,7 +161,7 @@ function createRuntimeStub(input: RuntimeSessionFactoryInput) {
   };
 }
 
-function sortAndDeduplicateCommands<T extends ResolvedCommand>(commands: T[]): T[] {
+function sortAndDeduplicateCommands<T extends { id: string; priority?: number }>(commands: T[]): T[] {
   const seen = new Set<string>();
   return commands
     .sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0))
@@ -199,7 +200,7 @@ function create(input: RuntimeSessionFactoryInput): RuntimeSession {
 
   const resolveCommands = (
     runtimeInput?: RuntimeCommandTrigger | Partial<RuntimeCommandInput>
-  ): ResolvedCommand[] => {
+  ): AnyResolvedCommand[] => {
     const context = createCommandContext(runtimeInput);
     return sortAndDeduplicateCommands(
       input.commandResolvers.flatMap((resolver) => resolver.resolve(context))
@@ -221,7 +222,7 @@ function create(input: RuntimeSessionFactoryInput): RuntimeSession {
 
   const resolveWorldObjectInteractions = (
     runtimeInput?: RuntimeCommandTrigger | Partial<RuntimeCommandInput>
-  ): RuntimeWorldObjectInteraction[] => {
+  ): AnyRuntimeWorldObjectInteraction[] => {
     const context = createCommandContext(runtimeInput);
     const object = inspectWorldObject(runtimeInput);
     if (!object) return [];
@@ -261,7 +262,7 @@ function create(input: RuntimeSessionFactoryInput): RuntimeSession {
 
   const resolveSelectedInventoryInteractions = (
     runtimeInput?: RuntimeCommandTrigger | Partial<RuntimeCommandInput>
-  ): RuntimeInventoryInteraction[] => {
+  ): AnyRuntimeInventoryInteraction[] => {
     const context = createCommandContext(runtimeInput);
     const descriptor = inspectSelectedInventorySlot(runtimeInput);
     if (!descriptor || context.selectedSlot === null || context.selectedSlot === undefined) {
@@ -285,7 +286,7 @@ function create(input: RuntimeSessionFactoryInput): RuntimeSession {
 
   const resolveCombinedInteractions = (
     runtimeInput?: RuntimeCommandTrigger | Partial<RuntimeCommandInput>
-  ): RuntimeCombinedInteraction[] => {
+  ): AnyRuntimeCombinedInteraction[] => {
     const context = createCommandContext(runtimeInput);
     const descriptor = inspectSelectedInventorySlot(runtimeInput);
     const object = inspectWorldObject(runtimeInput);
@@ -326,7 +327,11 @@ function create(input: RuntimeSessionFactoryInput): RuntimeSession {
       if (!action) {
         return { ok: false, message: `Unknown action: ${actionId}` };
       }
-      const result = action.execute({ state, content: input.content, command });
+      const result = action.execute({
+        state,
+        content: input.content,
+        command
+      });
       state.logs.push(result.message);
       return result;
     },

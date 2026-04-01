@@ -1,8 +1,20 @@
-import type { RuntimeAction } from "@gamedemo/engine-core";
+import { RuntimePayload, type RuntimeAction } from "@gamedemo/engine-core";
+import typia from "typia";
 import { PlayerDomain } from "./playerDomain";
 
+type PlayerMoveActionId =
+  | "player:move-up"
+  | "player:move-left"
+  | "player:move-down"
+  | "player:move-right";
+
 class PlayerActionFactory {
-  createMoveAction(id: string, dx: number, dy: number, label: string): RuntimeAction {
+  createMoveAction<TActionId extends PlayerMoveActionId>(
+    id: TActionId,
+    dx: number,
+    dy: number,
+    label: string
+  ): RuntimeAction {
     return {
       id,
       label,
@@ -27,6 +39,15 @@ class PlayerActionFactory {
   }
 }
 
+const validateSetMoveTargetPayload = typia.createValidate<{
+  x: number;
+  y: number;
+}>();
+const validateMovementInputPayload = typia.createValidate<{
+  direction: "up" | "left" | "down" | "right";
+  isDown: boolean;
+}>();
+
 const factory = new PlayerActionFactory();
 
 const setMoveTarget: RuntimeAction = {
@@ -34,12 +55,11 @@ const setMoveTarget: RuntimeAction = {
   label: "Set move target",
   execute(context) {
     const current = PlayerDomain.currentTile(context.state.player);
-    const targetX = typeof context.command?.payload?.x === "number"
-      ? Math.floor(context.command.payload.x)
-      : current.x;
-    const targetY = typeof context.command?.payload?.y === "number"
-      ? Math.floor(context.command.payload.y)
-      : current.y;
+    const parsed = RuntimePayload.parse(context.command?.payload, validateSetMoveTargetPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("player:set-move-target") };
+    }
+    const { x: targetX, y: targetY } = parsed.data;
     if (targetX === current.x && targetY === current.y) {
       PlayerDomain.clearMoveState(context.state.player);
       return { ok: true, message: "Movement target cleared." };
@@ -72,13 +92,11 @@ const updateMovementInput: RuntimeAction = {
   id: "player:update-movement-input",
   label: "Update movement input",
   execute(context) {
-    const direction = typeof context.command?.payload?.direction === "string"
-      ? context.command.payload.direction
-      : "";
-    const isDown = context.command?.payload?.isDown === true;
-    if (direction !== "up" && direction !== "left" && direction !== "down" && direction !== "right") {
-      return { ok: false, message: "Invalid movement direction." };
+    const parsed = RuntimePayload.parse(context.command?.payload, validateMovementInputPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("player:update-movement-input") };
     }
+    const { direction, isDown } = parsed.data;
     PlayerDomain.updateMovementKey(
       context.state.player,
       direction,

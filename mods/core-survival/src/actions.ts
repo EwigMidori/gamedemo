@@ -1,14 +1,24 @@
-import type { RuntimeAction } from "@gamedemo/engine-core";
+import { RuntimePayload, type RuntimeAction } from "@gamedemo/engine-core";
+import typia from "typia";
 import { VanillaInventory } from "@gamedemo/vanilla-domain";
 import { SurvivalDomain } from "./survivalDomain";
+
+const validateOptionalSlotPayload = typia.createValidate<{
+  slotIndex?: number;
+}>();
+const validateRestPayload = typia.createValidate<{
+  structureId?: string;
+}>();
 
 const eatRation: RuntimeAction = {
   id: "survival:eat-ration",
   label: "Eat ration",
   execute({ state, content, command }) {
-    const slotIndex = typeof command?.payload?.slotIndex === "number"
-      ? Math.floor(command.payload.slotIndex)
-      : undefined;
+    const parsed = RuntimePayload.parse(command?.payload ?? {}, validateOptionalSlotPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("survival:eat-ration") };
+    }
+    const slotIndex = parsed.data.slotIndex === undefined ? undefined : Math.floor(parsed.data.slotIndex);
     const selectedEntry = SurvivalDomain.getInventoryEntryAtSlot(state.inventory, slotIndex);
     const consumed = selectedEntry
       ? selectedEntry.itemId === "survival:ration" &&
@@ -42,9 +52,11 @@ const eatFood: RuntimeAction = {
   id: "survival:eat-food",
   label: "Eat food",
   execute({ state, content, command }) {
-    const slotIndex = typeof command?.payload?.slotIndex === "number"
-      ? Math.floor(command.payload.slotIndex)
-      : undefined;
+    const parsed = RuntimePayload.parse(command?.payload ?? {}, validateOptionalSlotPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("survival:eat-food") };
+    }
+    const slotIndex = parsed.data.slotIndex === undefined ? undefined : Math.floor(parsed.data.slotIndex);
     const selectedEntry = SurvivalDomain.getInventoryEntryAtSlot(state.inventory, slotIndex);
     const consumed = selectedEntry
       ? selectedEntry.itemId === "core:food" &&
@@ -75,10 +87,14 @@ const restAtCampfire: RuntimeAction = {
   id: "survival:rest-at-campfire",
   label: "Rest at campfire",
   execute({ state, command }) {
-    const target =
-      typeof command?.payload?.structureId === "string"
-        ? SurvivalDomain.getStructureById(state, command.payload.structureId)
-        : SurvivalDomain.findNearestAdjacentCampfire(state);
+    const parsed = RuntimePayload.parse(command?.payload ?? {}, validateRestPayload);
+    if (!parsed.ok) {
+      return { ok: false, message: RuntimePayload.failureMessage("survival:rest-at-campfire") };
+    }
+    const structureId = parsed.data.structureId;
+    const target = structureId
+      ? SurvivalDomain.getStructureById(state, structureId)
+      : SurvivalDomain.findNearestAdjacentCampfire(state);
 
     if (!target || target.structureId !== "core:campfire") {
       return {

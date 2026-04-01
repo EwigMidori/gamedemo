@@ -10,11 +10,13 @@
     "compare:visual": "node tools/visual-compare/runComparison.mjs"
   },
   "devDependencies": {
+    "@typia/unplugin": "^12.0.1",
     "@playwright/test": "^1.58.2",
     "phaser": "^3.90.0",
     "phaser3-rex-plugins": "^1.80.19",
     "pixelmatch": "^7.1.0",
     "pngjs": "^7.0.0",
+    "typia": "^12.0.1",
     "typescript": "~5.9.3",
     "vite": "^8.0.0"
   }

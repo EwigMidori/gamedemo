@@ -1,7 +1,9 @@
+import typia from "@typia/unplugin";
 import { defineConfig } from "vite";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
+  plugins: [typia.vite()],
   resolve: {
     alias: {
       "@gamedemo/engine-content": fileURLToPath(
