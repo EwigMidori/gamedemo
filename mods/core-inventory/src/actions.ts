@@ -1,14 +1,23 @@
-import type { RuntimeAction, RuntimeActionResult } from "@gamedemo/engine-core";
+import { RuntimePayload, type RuntimeAction, type RuntimeActionResult } from "@gamedemo/engine-core";
+import typia from "typia";
 
 class InventoryActionFactory {
+  private readonly validateDropSelectedItemPayload = typia.createValidate<{
+    slotIndex: number;
+  }>();
+
   createDropSelectedItem(): RuntimeAction {
+    const validateDropSelectedItemPayload = this.validateDropSelectedItemPayload;
+    const spawnDrop = this.spawnDrop.bind(this);
     return {
       id: "inventory:drop-selected-item",
       label: "Drop selected item",
       execute({ state, command }): RuntimeActionResult {
-        const slotIndex = typeof command?.payload?.slotIndex === "number"
-          ? Math.floor(command.payload.slotIndex)
-          : -1;
+        const parsed = RuntimePayload.parse(command?.payload, validateDropSelectedItemPayload);
+        if (!parsed.ok) {
+          return { ok: false, message: RuntimePayload.failureMessage("inventory:drop-selected-item") };
+        }
+        const slotIndex = Math.floor(parsed.data.slotIndex);
         const entry = state.inventory[slotIndex] ?? null;
         if (!entry?.itemId || entry.quantity <= 0) {
           return { ok: false, message: "Selected slot is empty." };
@@ -19,7 +28,7 @@ class InventoryActionFactory {
           entry.itemId = "";
           entry.quantity = 0;
         }
-        this.spawnDrop(state, itemId, 1);
+        spawnDrop(state, itemId, 1);
         return {
           ok: true,
           message: `Dropped 1 ${itemId}.`

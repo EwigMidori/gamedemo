@@ -1,8 +1,9 @@
 import type { ContentRegistryBuilder } from "@gamedemo/engine-content";
 import type {
-  ResolvedCommand,
-  RuntimeAction,
+  AnyResolvedCommand,
+  AnyRuntimeAction,
   RuntimeActionResult,
+  RuntimeDispatchedCommand,
   RuntimeCombinedInteraction,
   RuntimeCommand,
   RuntimeCommandInput,
@@ -21,15 +22,8 @@ import type { GameModManifest } from "@gamedemo/mod-api";
 
 export interface RuntimeSession {
   tick(deltaSeconds: number): RuntimeSessionState;
-  dispatchAction(
-    actionId: string,
-    command?: {
-      id: string;
-      trigger: RuntimeCommandTrigger;
-      payload?: Record<string, unknown>;
-    }
-  ): RuntimeActionResult;
-  resolveCommands(input?: RuntimeCommandTrigger | Partial<RuntimeCommandInput>): ResolvedCommand[];
+  dispatchAction(actionId: string, command?: RuntimeDispatchedCommand): RuntimeActionResult;
+  resolveCommands(input?: RuntimeCommandTrigger | Partial<RuntimeCommandInput>): AnyResolvedCommand[];
   executeCommand(
     commandId: string,
     input?: RuntimeCommandTrigger | Partial<RuntimeCommandInput>
@@ -57,7 +51,7 @@ export interface AssembledRuntime {
   manifests: GameModManifest[];
   content: ReturnType<ContentRegistryBuilder["snapshot"]>;
   systems: RuntimeSystem[];
-  actions: RuntimeAction[];
+  actions: AnyRuntimeAction[];
   commands: RuntimeCommand[];
   worldgen: WorldgenStage[];
   uiPanels: RuntimeUiPanel[];
