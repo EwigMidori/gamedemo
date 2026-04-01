@@ -1,16 +1,21 @@
 import type {
   ContentSnapshot,
+  ItemDef,
   ResourceDef,
   StructureDef,
   TerrainDef
 } from "@gamedemo/engine-core";
 
 export class RuntimeContentIndex {
+  private readonly itemIndex = new Map<string, ItemDef>();
   private readonly terrainIndex = new Map<string, TerrainDef>();
   private readonly structureIndex = new Map<string, StructureDef>();
   private readonly resourceIndex = new Map<string, ResourceDef>();
 
   constructor(content: ContentSnapshot) {
+    for (const item of content.items) {
+      this.itemIndex.set(item.id, item);
+    }
     for (const terrain of content.terrains) {
       this.terrainIndex.set(terrain.id, terrain);
     }
@@ -24,6 +29,10 @@ export class RuntimeContentIndex {
 
   terrain(id: string): TerrainDef | null {
     return this.terrainIndex.get(id) ?? null;
+  }
+
+  item(id: string): ItemDef | null {
+    return this.itemIndex.get(id) ?? null;
   }
 
   structure(id: string): StructureDef | null {

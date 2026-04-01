@@ -254,7 +254,7 @@ def build_tiles() -> list[Image.Image]:
 
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
-    out_path = root / "assets" / "tileset.png"
+    out_path = root / "packages" / "engine-phaser" / "assets" / "tileset.png"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     sheet = Image.new("RGB", (COLS * TILE, ROWS * TILE), (0, 0, 0))

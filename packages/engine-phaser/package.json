@@ -9,6 +9,7 @@
   "dependencies": {
     "@gamedemo/engine-core": "workspace:*",
     "@gamedemo/engine-runtime": "workspace:*",
+    "@gamedemo/mod-api": "workspace:*",
     "phaser": "^3.90.0"
   }
 }

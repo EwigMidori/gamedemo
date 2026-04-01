@@ -124,7 +124,7 @@ def draw_frame(direction: str, step: int) -> Image.Image:
 
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
-    out_path = root / "assets" / "pawn.png"
+    out_path = root / "packages" / "engine-phaser" / "assets" / "pawn.png"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     sheet = Image.new("RGBA", (FRAMES * TILE, TILE), (0, 0, 0, 0))

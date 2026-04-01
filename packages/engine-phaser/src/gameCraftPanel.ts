@@ -68,7 +68,7 @@ export class GameCraftPanel {
         continue;
       }
       const craftable = this.canCraft(snapshot, recipe);
-      row.icon.setFrame(this.itemFrame(recipe.output.itemId));
+      row.icon.setTexture(this.itemTextureKey(recipe.output.itemId), this.itemFrame(recipe.output.itemId));
       row.title.setText(`${recipe.label} x${recipe.output.quantity}`);
       row.cost.setText(this.describeCost(snapshot, recipe));
       row.state.setText(craftable ? "READY" : "MISS").setColor(craftable ? "#91c483" : RuntimeTheme.textMuted);
@@ -173,6 +173,11 @@ export class GameCraftPanel {
   private itemFrame(itemId: string): number {
     const item = this.content.items.find((entry) => entry.id === itemId) ?? null;
     return item?.iconFrame ?? RuntimeTheme.itemFrameFor(itemId);
+  }
+
+  private itemTextureKey(itemId: string): string {
+    const item = this.content.items.find((entry) => entry.id === itemId) ?? null;
+    return item?.iconTextureKey ?? RuntimeAssetLibrary.uiKey;
   }
 
   private makeText(text: string, fontSize: string, color: string): Phaser.GameObjects.Text {

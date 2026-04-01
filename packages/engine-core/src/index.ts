@@ -19,6 +19,7 @@ export interface ItemDef {
   stackSize: number;
   tags: string[];
   iconFrame?: number;
+  iconTextureKey?: string;
   category?: string;
   uiGroup?: string;
   uiPriority?: number;
@@ -62,6 +63,7 @@ export interface StructureDef {
   blocksMovement: boolean;
   tags: string[];
   frame?: number;
+  textureKey?: string;
   placeableItemId?: string;
   pickupItemId?: string;
   storageSlots?: number;
@@ -108,6 +110,7 @@ export interface ResourceDef {
   id: string;
   label: string;
   frame: number;
+  textureKey?: string;
   blocksMovement: boolean;
   drops: Array<{
     itemId: string;
@@ -138,6 +141,7 @@ export interface TerrainDef {
   walkable: boolean;
   tags: string[];
   frame?: number;
+  textureKey?: string;
   tint?: number;
 }
 

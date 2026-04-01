@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type {
+  ContentSnapshot,
   RuntimeCommandInput,
   RuntimeCombinedInteraction,
   RuntimeInventoryInteraction,
@@ -15,6 +16,7 @@ import { GameHudHoverCard } from "./gameHudHoverCard";
 import { RuntimeTheme } from "./runtimeTheme";
 
 interface GameHudOptions {
+  content: ContentSnapshot;
   getCommandInput?(): Partial<RuntimeCommandInput>;
   onInventorySlotSelect?(slotIndex: number): void;
 }
@@ -250,7 +252,10 @@ export class GameHud {
         slot.amount.setText("");
         continue;
       }
-      slot.icon.setVisible(true).setFrame(RuntimeTheme.itemFrameFor(entry.itemId));
+      slot.icon.setTexture(
+        this.itemTextureKey(entry.itemId),
+        this.itemFrame(entry.itemId)
+      ).setVisible(true);
       slot.amount.setText(`${entry.quantity}`);
     }
   }
@@ -319,6 +324,14 @@ export class GameHud {
         .setDepth(1003),
       fillWidth: 124
     };
+  }
+
+  private itemTextureKey(itemId: string): string {
+    return this.options.content.items.find((entry) => entry.id === itemId)?.iconTextureKey ?? RuntimeAssetLibrary.uiKey;
+  }
+
+  private itemFrame(itemId: string): number {
+    return this.options.content.items.find((entry) => entry.id === itemId)?.iconFrame ?? RuntimeTheme.itemFrameFor(itemId);
   }
 
   private renderMeter(meter: MeterView, value: number): void {

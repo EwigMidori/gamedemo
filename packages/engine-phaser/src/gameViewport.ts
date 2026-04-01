@@ -123,7 +123,7 @@ export class GameViewport {
       const sprite = this.scene.add.image(
         tile.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
         tile.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
-        RuntimeAssetLibrary.worldKey,
+        terrain?.textureKey ?? RuntimeAssetLibrary.worldKey,
         terrain?.frame ?? RuntimeTheme.terrainFrame(tile.terrainId)
       )
         .setDepth(0)
@@ -148,19 +148,19 @@ export class GameViewport {
         continue;
       }
       visibleIds.add(resource.id);
-      const sprite = this.resourceSprites.get(resource.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0).setDepth(2);
       const resourceDef = this.options.contentIndex.resource(resource.resourceId);
+      const sprite = this.resourceSprites.get(resource.id)
+        ?? this.scene.add.image(0, 0, resourceDef?.textureKey ?? RuntimeAssetLibrary.worldKey, 0).setDepth(2);
       const frame = isRespawningTree
         ? this.resolveRespawningTreeFrame(resource.respawnAt ?? snapshot.timeSeconds, snapshot.timeSeconds)
         : resourceDef?.frame ?? RuntimeTheme.resourceFrame(resource.resourceId);
       sprite
         .setVisible(true)
+        .setTexture(resourceDef?.textureKey ?? RuntimeAssetLibrary.worldKey, frame)
         .setPosition(
           resource.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
           resource.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5
         )
-        .setFrame(frame)
         .setTint(isRespawningTree ? 0xbfa57f : RuntimeTheme.objectTint);
       this.resourceSprites.set(resource.id, sprite);
     }
@@ -204,9 +204,9 @@ export class GameViewport {
         continue;
       }
       visibleIds.add(structure.id);
-      const sprite = this.structureSprites.get(structure.id)
-        ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.worldKey, 0).setDepth(3);
       const definition = this.options.contentIndex.structure(structure.structureId);
+      const sprite = this.structureSprites.get(structure.id)
+        ?? this.scene.add.image(0, 0, definition?.textureKey ?? RuntimeAssetLibrary.worldKey, 0).setDepth(3);
       const stage = definition?.growableStages?.length && structure.growth !== null && structure.growth !== undefined
         ? this.resolveGrowthStage(definition, structure.growth)
         : null;
@@ -223,11 +223,11 @@ export class GameViewport {
       const tint = stage?.tint ?? RuntimeTheme.structureTintFor(structure.structureId);
       sprite
         .setVisible(true)
+        .setTexture(definition?.textureKey ?? RuntimeAssetLibrary.worldKey, frame)
         .setPosition(
           structure.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
           structure.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5
         )
-        .setFrame(frame)
         .setTint(tint);
       this.structureSprites.set(structure.id, sprite);
     }
@@ -247,14 +247,17 @@ export class GameViewport {
       visibleIds.add(drop.id);
       const sprite = this.dropSprites.get(drop.id)
         ?? this.scene.add.image(0, 0, RuntimeAssetLibrary.uiKey, 0).setDepth(4);
+      const itemDef = this.options.contentIndex.item(drop.itemId);
+      const textureKey = itemDef?.iconTextureKey ?? RuntimeAssetLibrary.uiKey;
+      const frame = itemDef?.iconFrame ?? RuntimeTheme.itemFrameFor(drop.itemId);
       const bob = Math.sin((snapshot.timeSeconds - drop.spawnedAt) * 4.2) * 2;
       sprite
         .setVisible(true)
+        .setTexture(textureKey, frame)
         .setPosition(
           drop.x * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5,
           drop.y * RuntimeAssetLibrary.tileSize + RuntimeAssetLibrary.tileSize * 0.5 - 4 + bob
-        )
-        .setFrame(RuntimeTheme.itemFrameFor(drop.itemId));
+        );
       this.dropSprites.set(drop.id, sprite);
     }
     for (const [id, sprite] of this.dropSprites.entries()) {
