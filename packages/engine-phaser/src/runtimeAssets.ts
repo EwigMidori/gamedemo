@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 
-const WORLD_TEXTURE_URL = new URL("../../../src/assets/generated/roguelike-world.png", import.meta.url).toString();
-const UI_TEXTURE_URL = new URL("../../../src/assets/generated/roguelike-ui.png", import.meta.url).toString();
-const PAWN_TEXTURE_URL = new URL("../../../src/assets/pawn.png", import.meta.url).toString();
+const WORLD_TEXTURE_URL = new URL("../../../assets/generated/roguelike-world.png", import.meta.url).toString();
+const UI_TEXTURE_URL = new URL("../../../assets/generated/roguelike-ui.png", import.meta.url).toString();
+const PAWN_TEXTURE_URL = new URL("../../../assets/pawn.png", import.meta.url).toString();
 
 export class RuntimeAssetLibrary {
   static readonly tileSize = 16;
