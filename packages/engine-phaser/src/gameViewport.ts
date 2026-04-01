@@ -1236,18 +1236,20 @@ export class GameViewport {
   }
 
   private renderCursor(): void {
-    // DEBUG: Verify this code is running
-    console.log('[DEBUG] renderCursor v2 - calculating from pointer.worldX/Y');
-    
     // Get current mouse position and calculate tile in real-time
+    // Use camera.getWorldPoint to convert screen coordinates to world coordinates
     // This ensures cursor follows camera movement even when mouse is stationary
     const pointer = this.scene.input.activePointer;
-    const worldX = pointer.worldX;
-    const worldY = pointer.worldY;
+    const camera = this.scene.cameras.main;
+    
+    // Convert screen coordinates to world coordinates
+    // pointer.x/y are screen coordinates, need to account for camera position and zoom
+    const worldPoint = camera.getWorldPoint(pointer.x, pointer.y);
+    const worldX = worldPoint.x;
+    const worldY = worldPoint.y;
+    
     const tileX = Math.floor(worldX / RuntimeAssetLibrary.tileSize);
     const tileY = Math.floor(worldY / RuntimeAssetLibrary.tileSize);
-    
-    console.log('[DEBUG] pointer world:', worldX, worldY, 'tile:', tileX, tileY);
     
     // Check if mouse is within world bounds
     const snapshot = this.session.snapshot();
