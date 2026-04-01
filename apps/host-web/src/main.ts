@@ -1,4 +1,5 @@
 import "./style.css";
+// HMR_TRIGGER: cursor fix v2 - force reload
 import {
   ExternalMods,
   ModCatalogs,
