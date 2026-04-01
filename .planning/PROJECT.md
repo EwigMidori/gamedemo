@@ -15,13 +15,16 @@
 - **建筑视锥剔除**: `renderStructures()`, `renderPlantedResources()`, `renderDrops()` 全部优化
 - **共享视锥计算**: `calculateFrustumBounds()` 每帧计算一次，所有渲染器共享
 - **远处实体清理**: `DistantEntityCleanupSystem` 每 5 秒清理 >100 格且已耗尽资源
-- **地形内存优化**: `cleanupDistantTerrainSprites()` 每 1 秒清理 >50 格地形精灵
-- **视野基渲染**: 重写 `renderTerrain()`，40 格视野半径，返回已清理区域自动重建
+- **地形内存优化**: `cleanupDistantTerrainSprites()` 每 1 秒清理 >80 格地形精灵（从 50 格优化）
+- **视野基渲染**: 重写 `renderTerrain()`，40 格视野半径，使用查找表优化 O(view²) 复杂度
+- **光标跟踪**: 修复 `camera.getWorldPoint()` 正确计算光标世界坐标
 
 **关键修复**:
 - 修复远距离性能下降（O(n) 遍历 bug）
 - 修复返回已清理区域黑地形问题
 - 修复视野边缘地形闪烁
+- 修复地形 tile 迭代 O(n) 问题（~150 倍性能提升）
+- 修复光标不跟随相机移动问题
 
 ### v1.1 Achievements ✅ (Performance Optimization)
 
