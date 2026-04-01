@@ -318,8 +318,11 @@ class SessionController {
       return null;
     }
     const snapshot = this.activeSession.snapshot();
-    if (typeof command.payload?.resourceNodeId === "string") {
-      const target = snapshot.resources.find((entry) => entry.id === command.payload?.resourceNodeId) ?? null;
+    const resourceNodeId = typeof command.payload?.resourceNodeId === "string"
+      ? command.payload.resourceNodeId
+      : undefined;
+    if (resourceNodeId) {
+      const target = snapshot.resources.find((entry) => entry.id === resourceNodeId) ?? null;
       if (!target) {
         return null;
       }
@@ -334,8 +337,11 @@ class SessionController {
         requiresApproach: !command.enabled
       };
     }
-    if (typeof command.payload?.structureId === "string") {
-      const target = snapshot.placedStructures.find((entry) => entry.id === command.payload?.structureId) ?? null;
+    const structureId = typeof command.payload?.structureId === "string"
+      ? command.payload.structureId
+      : undefined;
+    if (structureId) {
+      const target = snapshot.placedStructures.find((entry) => entry.id === structureId) ?? null;
       if (!target) {
         return null;
       }

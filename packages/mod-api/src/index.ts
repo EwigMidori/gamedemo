@@ -22,12 +22,28 @@ export interface ModDependency {
   versionRange?: string;
 }
 
+export interface ModSpritesheetAsset {
+  key: string;
+  url: string;
+  frameWidth: number;
+  frameHeight: number;
+  startFrame?: number;
+  endFrame?: number;
+  margin?: number;
+  spacing?: number;
+}
+
+export interface GameModAssets {
+  spritesheets?: ModSpritesheetAsset[];
+}
+
 export interface GameModManifest extends RuntimeProfileEntry {
   apiVersion: string;
   dependsOn?: ModDependency[];
   optionalDependsOn?: ModDependency[];
   loadBefore?: string[];
   loadAfter?: string[];
+  assets?: GameModAssets;
 }
 
 export interface SystemRegistry {

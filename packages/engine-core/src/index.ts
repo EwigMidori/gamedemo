@@ -1,3 +1,5 @@
+import type { IValidation } from "typia";
+
 export const ENGINE_PACKAGE_NAME = "@gamedemo/engine-core";
 export const ENGINE_VERSION = "0.1.0";
 export const MOD_API_VERSION = "0.1.0";
@@ -17,6 +19,7 @@ export interface ItemDef {
   stackSize: number;
   tags: string[];
   iconFrame?: number;
+  iconTextureKey?: string;
   category?: string;
   uiGroup?: string;
   uiPriority?: number;
@@ -60,6 +63,7 @@ export interface StructureDef {
   blocksMovement: boolean;
   tags: string[];
   frame?: number;
+  textureKey?: string;
   placeableItemId?: string;
   pickupItemId?: string;
   storageSlots?: number;
@@ -106,6 +110,7 @@ export interface ResourceDef {
   id: string;
   label: string;
   frame: number;
+  textureKey?: string;
   blocksMovement: boolean;
   drops: Array<{
     itemId: string;
@@ -136,6 +141,7 @@ export interface TerrainDef {
   walkable: boolean;
   tags: string[];
   frame?: number;
+  textureKey?: string;
   tint?: number;
 }
 
@@ -265,15 +271,73 @@ export interface RuntimeSystemContext {
 
 export type SessionBootstrapper = (state: RuntimeSessionState) => void;
 
+export type RuntimeCommandPayload = Record<string, unknown>;
+
+export interface RuntimeActionPayloadMap {}
+
+export type RuntimeActionId = string;
+
+export type RuntimeActionPayload<_TActionId extends RuntimeActionId> = RuntimeCommandPayload;
+
+export interface RuntimeDispatchedCommand {
+  id: string;
+  trigger: RuntimeCommandTrigger;
+  payload?: RuntimeCommandPayload;
+}
+
 export interface RuntimeActionContext {
   state: RuntimeSessionState;
   content: ContentSnapshot;
-  command?: {
-    id: string;
-    trigger: RuntimeCommandTrigger;
-    payload?: Record<string, unknown>;
-  };
+  command?: RuntimeDispatchedCommand;
 }
+
+export interface RuntimePayloadIssue {
+  path: string;
+  expected: string;
+  value: unknown;
+}
+
+export interface RuntimePayloadValidationResult<TPayload extends RuntimeCommandPayload> {
+  ok: true;
+  data: TPayload;
+}
+
+export interface RuntimePayloadValidationFailure {
+  ok: false;
+  issues: RuntimePayloadIssue[];
+}
+
+export type RuntimePayloadValidation<TPayload extends RuntimeCommandPayload> =
+  | RuntimePayloadValidationResult<TPayload>
+  | RuntimePayloadValidationFailure;
+
+export interface RuntimePayloadValidator<TPayload extends RuntimeCommandPayload> {
+  (input: unknown): IValidation<TPayload>;
+}
+
+export const RuntimePayload = {
+  parse<TPayload extends RuntimeCommandPayload>(
+    input: unknown,
+    validator: RuntimePayloadValidator<TPayload>
+  ): RuntimePayloadValidation<TPayload> {
+    const result = validator(input);
+    if (result.success) {
+      return { ok: true, data: result.data };
+    }
+    return {
+      ok: false,
+      issues: result.errors.map((entry) => ({
+        path: entry.path,
+        expected: entry.expected,
+        value: entry.value
+      }))
+    };
+  },
+
+  failureMessage(actionId: string): string {
+    return `Invalid payload for action ${actionId}.`;
+  }
+} as const;
 
 export interface RuntimeActionResult {
   ok: boolean;
@@ -333,8 +397,12 @@ export interface ResolvedCommand extends RuntimeCommand {
   reasonDisabled?: string;
   sourceModId: string;
   priority?: number;
-  payload?: Record<string, unknown>;
+  payload?: RuntimeCommandPayload;
 }
+
+export type AnyResolvedCommand = ResolvedCommand;
+
+export type AnyRuntimeAction = RuntimeAction;
 
 export interface RuntimeCommandContext extends RuntimeCommandInput {
   content: ContentSnapshot;
@@ -405,9 +473,15 @@ export interface RuntimeWorldObjectInteraction extends ResolvedCommand {
   presentation?: RuntimeInteractionPresentation;
 }
 
+export type AnyRuntimeInventoryInteraction = RuntimeInventoryInteraction;
+
+export type AnyRuntimeCombinedInteraction = RuntimeCombinedInteraction;
+
+export type AnyRuntimeWorldObjectInteraction = RuntimeWorldObjectInteraction;
+
 export interface RuntimeCommandResolver {
   id: string;
-  resolve(context: RuntimeCommandContext): ResolvedCommand[];
+  resolve(context: RuntimeCommandContext): AnyResolvedCommand[];
 }
 
 export interface RuntimeWorldObjectProvider {
@@ -421,7 +495,7 @@ export interface RuntimeWorldObjectInteractionContext extends RuntimeWorldObject
 
 export interface RuntimeWorldObjectInteractionProvider {
   id: string;
-  collect(context: RuntimeWorldObjectInteractionContext): RuntimeWorldObjectInteraction[];
+  collect(context: RuntimeWorldObjectInteractionContext): AnyRuntimeWorldObjectInteraction[];
 }
 
 export interface RuntimeInventorySelectionContext extends RuntimeCommandInput {
@@ -442,7 +516,7 @@ export interface RuntimeInventoryInteractionContext extends RuntimeInventorySele
 
 export interface RuntimeInventoryInteractionProvider {
   id: string;
-  collect(context: RuntimeInventoryInteractionContext): RuntimeInventoryInteraction[];
+  collect(context: RuntimeInventoryInteractionContext): AnyRuntimeInventoryInteraction[];
 }
 
 export interface RuntimeCombinedInteractionContext
@@ -452,7 +526,7 @@ export interface RuntimeCombinedInteractionContext
 
 export interface RuntimeCombinedInteractionProvider {
   id: string;
-  collect(context: RuntimeCombinedInteractionContext): RuntimeCombinedInteraction[];
+  collect(context: RuntimeCombinedInteractionContext): AnyRuntimeCombinedInteraction[];
 }
 
 export interface WorldTile {

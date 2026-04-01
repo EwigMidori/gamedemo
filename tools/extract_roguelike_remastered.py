@@ -512,8 +512,8 @@ def save_ui_sheet(sheet: Image.Image, out_path: Path) -> dict[str, int]:
 
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
-    src = root / "src" / "assets" / "vendor" / "roguelike-16-alpha.png"
-    out_dir = root / "src" / "assets" / "generated"
+    src = root / "packages" / "engine-phaser" / "assets" / "vendor" / "roguelike-16-alpha.png"
+    out_dir = root / "packages" / "engine-phaser" / "assets" / "generated"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     sheet = Image.open(src).convert("RGBA")

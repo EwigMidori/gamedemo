@@ -33,7 +33,7 @@ export class RuntimeGameScene extends Phaser.Scene {
   }
 
   preload(): void {
-    RuntimeAssetLibrary.preload(this);
+    RuntimeAssetLibrary.preload(this, this.runtime.manifests);
   }
 
   create(): void {
@@ -53,6 +53,7 @@ export class RuntimeGameScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(900);
     this.hud = new GameHud(this, this.session, {
+      content: this.runtime.content,
       getCommandInput: () => this.buildCommandInput(),
       onInventorySlotSelect: (slotIndex) => this.options.onInventorySlotSelect?.(slotIndex)
     });
